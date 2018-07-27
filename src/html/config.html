@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Configure Display</title>
+
+    <link rel="stylesheet" href="assets/css/uikit.min.css" />
+    <script src="assets/js/uikit.min.js"></script>
+    <script src="assets/js/uikit-icons.min.js"></script>
+    <script src="assets/js/jquery-3.3.1.min.js"></script>
+</head>
+<body class="uk-height-1-1">
+    <form id="configform" class="uk-form-horizontal uk-margin-top uk-margin-left" action="/config/set" method="POST">
+        <fieldset class="uk-fieldset uk-margin-top">
+            <legend class="uk-legend">Display</legend>
+            <div class="uk-margin">
+                <label class="uk-form-label" for="resolution">
+                    Screen Resolution
+                </label>
+                <div class="uk-form-controls">
+                    <Select class="uk-select uk-form-width-large" id="resolution" name="resolution">
+                        <option value="0">800 x 600</option>
+                    </Select>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="uk-fieldset uk-margin-top">
+            <legend class="uk-legend">Images</legend>
+            <div class="uk-margin">
+                <label class="uk-form-label" for="provider">
+                    Image Provider
+                </label>
+                <div class="uk-form-controls">
+                    <Select class="uk-select uk-form-width-large" id="provider" name="provider">
+                        <option value="0">Bing Image of the Day</option>
+                    </Select>
+                </div>
+            </div>
+            <div class="uk-margin">
+                <label class="uk-form-label" for="imgcount">
+                    Number of Images
+                </label>
+                <div class="uk-form-controls">
+                    <input class="uk-input uk-form-width-medium" id="imgcount" name="imgcount" type="number" placeholder="Location Name" value="{{.ImgCount}}">
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="uk-fieldset uk-margin-top">
+            <input class="uk-button uk-button-primary" type="submit" value="Save Changes">
+        </fieldset>
+    </form>
+    
+    <script type="text/javascript">
+        var frm = $('#configform')
+        frm.submit(function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: frm.attr('method'),
+                url: frm.attr('action'),
+                data: frm.serialize(),
+                success: function (data) {
+                    UIkit.notification({message: 'Update was successful.', status: 'success'});
+                },
+                error: function (data) {
+                    console.log(data)
+                    UIkit.notification({message: data.responseText, status: 'danger'})
+                }
+            });
+        });
+    </script>
+</body>
+</html>
