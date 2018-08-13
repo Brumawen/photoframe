@@ -6,11 +6,13 @@ import (
 	"image/color"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
+	gopifinder "github.com/brumawen/gopi-finder/src"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 )
@@ -54,7 +56,7 @@ func (d *Display) Run() {
 	}
 
 	// Get the current weather forecast
-	d.logDebug("Getting weather forecast.")
+	d.logInfo("Getting weather forecast.")
 	w, err := GetForecast()
 	if err != nil {
 		d.logError("Error getting weather forecast.", err.Error())
@@ -63,7 +65,7 @@ func (d *Display) Run() {
 	}
 
 	// Get the current moon phase
-	d.logDebug("Getting moon information.")
+	d.logInfo("Getting moon information.")
 	m, err := GetMoon()
 	if err != nil {
 		d.logError("Error getting moon phase details.", err.Error())
@@ -72,7 +74,7 @@ func (d *Display) Run() {
 	}
 
 	// Process the images
-	d.logDebug("Building display images.")
+	d.logInfo("Building display images.")
 	dl, err := d.buildDisplayImages(l, w, m)
 	if err != nil {
 		d.logError("Error building display images.", err.Error())
@@ -88,10 +90,13 @@ func (d *Display) Run() {
 		// Clear this folder
 		if fi, err := ioutil.ReadDir(d.Srv.Config.USBPath); err == nil {
 			for _, f := range fi {
-				p := filepath.Join(d.Srv.Config.USBPath, f.Name())
-				err = os.Remove(p)
-				if err != nil {
-					d.logError(fmt.Sprintf("Error removing file '%s'", p))
+				n := f.Name()
+				if n != "System Volume Information" {
+					p := filepath.Join(d.Srv.Config.USBPath, f.Name())
+					err = os.Remove(p)
+					if err != nil {
+						d.logError(fmt.Sprintf("Error removing file '%s'", p))
+					}
 				}
 			}
 		}
@@ -110,9 +115,39 @@ func (d *Display) Run() {
 		}
 	}
 
+	// Refresh the USB mount
+	d.RefreshUSB()
+
 	d.IsRunning = false
 	d.LastErr = nil
 	d.logInfo("Processing complete.")
+}
+
+// RefreshUSB will remove and readd the USB mount, so that the display will trigger a reload of the images
+func (d *Display) RefreshUSB() {
+	go func() {
+		d.logInfo("Refreshing USB display")
+		myInfo, err := gopifinder.NewDeviceInfo()
+		if err != nil {
+			d.logError("Error getting device information. " + err.Error())
+			return
+		}
+		if myInfo.OS != "Linux" {
+			d.logError("Refresh of USB is not supported on " + myInfo.OS)
+			return
+		}
+		// Switch off the USB
+		d.logDebug("Remove USB entry.")
+		err = exec.Command("sudo", "modprobe", "-r", "g_mass_storage").Run()
+		if err != nil {
+			d.logError("Error removing USB entry. " + err.Error())
+		}
+		err = exec.Command("sudo", "modprobe", "g_mass_storage", "file=/piusb.bin", "stall=0", "ro=1").Run()
+		if err != nil {
+			d.logError("Error adding USB entry. " + err.Error())
+		}
+		d.logInfo("Refresh USB display complete.")
+	}()
 }
 
 func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon) ([]DisplayImage, error) {

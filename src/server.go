@@ -93,6 +93,7 @@ func (s *Server) run() {
 	// Add the controllers
 	s.addController(new(LogController))
 	s.addController(new(ConfigController))
+	s.addController(new(DisplayController))
 
 	// Create an HTTP server
 	s.http = &http.Server{
