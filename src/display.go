@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brumawen/gg"
 	"github.com/disintegration/imaging"
+	"github.com/fogleman/gg"
 )
 
 // Display is used to redraw the display images
