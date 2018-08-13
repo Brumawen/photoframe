@@ -133,7 +133,7 @@ func (d *Display) RefreshUSB() {
 			return
 		}
 		if myInfo.OS != "Linux" {
-			d.logError("Refresh of USB is not supported on " + myInfo.OS)
+			d.logInfo("Refresh of USB is not supported on " + myInfo.OS)
 			return
 		}
 		// Switch off the USB
