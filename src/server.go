@@ -125,6 +125,9 @@ func (s *Server) startSchedule() {
 	}
 	s.cw = clockwerk.New()
 	s.cw.Every(30 * time.Minute).Do(&s.Display)
+	s.cw.Start()
+
+	s.logDebug("Schedule set.")
 }
 
 // RegisterService will register the service with the devices on the network

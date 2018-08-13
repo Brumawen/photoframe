@@ -41,6 +41,17 @@ func (b *IodBing) GetImages() ([]DisplayImage, error) {
 			}
 		}
 	}
+	if err != nil {
+		// Check to see if we already have the last response cached
+		fn := "lastiodbing.json"
+		if _, err := os.Stat(fn); !os.IsNotExist(err) {
+			// Deserialize the last cached list
+			b, err := ioutil.ReadFile(fn)
+			if err == nil {
+				err = json.Unmarshal(b, &l)
+			}
+		}
+	}
 
 	return l, err
 }
