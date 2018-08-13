@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/disintegration/imaging"
 )
 
 type bingdata struct {
@@ -57,7 +59,11 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 		}
 	}
 
-	res := "_800x600"
+	res := ""
+	switch b.Config.Resolution {
+	case 0: // 800x480
+		res = "_800x600"
+	}
 
 	for _, i := range bd.Images {
 		// Check to see if the file already exists
@@ -78,6 +84,17 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 			err = ioutil.WriteFile(fp, b, 0666)
 			if err != nil {
 				return l, err
+			}
+		}
+		// Resize the image if required
+		switch b.Config.Resolution {
+		case 0: // 800x480
+			// Resize the images from 800x600 to 800x480
+			if img, err := imaging.Open(fp); err != nil {
+				b.LogError("Error opening image for resizing. " + err.Error())
+			} else {
+				img = imaging.Fill(img, 800, 480, imaging.Center, imaging.Lanczos)
+				imaging.Save(img, fp)
 			}
 		}
 		l = append(l, DisplayImage{
@@ -107,16 +124,33 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 			}
 		}
 	}
+	if err == nil {
+		b, err := json.Marshal(l)
+		if err != nil {
+			return nil, err
+		}
+		ioutil.WriteFile("lastiodbing.json", b, 0666)
+	}
 
-	return l, nil
+	return l, err
 }
 
 // LogInfo is used to log information messages for this controller.
 func (b *IodBing) LogInfo(v ...interface{}) {
 	a := fmt.Sprint(v)
 	if logger != nil {
-		logger.Info("IodBing: ", a[1:len(a)-1])
+		logger.Info("IodBing: [Inf] ", a[1:len(a)-1])
 	} else {
-		fmt.Println("IodBing: ", a[1:len(a)-1])
+		fmt.Println("IodBing: [Inf] ", a[1:len(a)-1])
+	}
+}
+
+// LogError is used to log error messages for this controller.
+func (b *IodBing) LogError(v ...interface{}) {
+	a := fmt.Sprint(v)
+	if logger != nil {
+		logger.Info("IodBing: [Err] ", a[1:len(a)-1])
+	} else {
+		fmt.Println("IodBing: [Err] ", a[1:len(a)-1])
 	}
 }

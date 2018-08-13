@@ -10,9 +10,10 @@ import (
 
 // Config holds the configuration required for the Soil Monitor module.
 type Config struct {
-	Resolution int `json:"resolution"`
-	Provider   int `json:"provider"`
-	ImgCount   int `json:"imgcount"`
+	Resolution int    `json:"resolution"` // Resolution of the display, 0=800x480
+	Provider   int    `json:"provider"`   // Image of the Day provider
+	ImgCount   int    `json:"imgcount"`   // NUmber of images to retrieve
+	USBPath    string `json:"usbPath"`    // Path to the USB shared folder
 }
 
 // ReadFromFile will read the configuration settings from the specified file
@@ -78,7 +79,16 @@ func (c *Config) Deserialize(v string) error {
 
 // SetDefaults checks the values and sets the defaults
 func (c *Config) SetDefaults() {
+	mustSave := false
 	if c.ImgCount < 1 {
-		c.ImgCount = 5
+		c.ImgCount = 8
+		mustSave = true
+	}
+	if c.USBPath == "" {
+		c.USBPath = "/mnt/usb_share"
+		mustSave = true
+	}
+	if mustSave {
+		c.WriteToFile("config.json")
 	}
 }

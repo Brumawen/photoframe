@@ -6,10 +6,11 @@ import (
 
 func TestCanGetImages(t *testing.T) {
 	c := Config{
-		Resolution: 0,
 		Provider:   0,
 		ImgCount:   8,
+		Resolution: 0,
 	}
+	c.SetDefaults()
 
 	i := IodBing{Config: c}
 	l, err := i.GetImages()

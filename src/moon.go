@@ -10,10 +10,10 @@ import (
 // Moon holds the details about a moon phase
 type Moon struct {
 	Date         time.Time `json:"Date"`
-	Age          float64   `json:"Age"`
-	Phase        float64   `json:"Phase"`
+	Age          float32   `json:"Age"`
+	Phase        float32   `json:"Phase"`
 	PhaseName    string    `json:"PhaseName"`
-	Illumination float64   `json:"Illumination"`
+	Illumination float32   `json:"Illumination"`
 }
 
 // GetMoon returns the details about the current phase of the moon
@@ -27,5 +27,18 @@ func GetMoon() (Moon, error) {
 		}
 	}
 
+	if err == nil {
+		m.WriteToFile("lastmoon.json")
+	}
+
 	return m, err
+}
+
+// WriteToFile will write the forecast information to the specified file
+func (m *Moon) WriteToFile(path string) error {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, b, 0666)
 }

@@ -12,12 +12,16 @@ import (
 var logger service.Logger
 
 func main() {
-	port := flag.Int("p", 20510, "Port Number to listen on.")
+	port := flag.Int("p", 20512, "Port Number to listen on.")
+	timeout := flag.Int("t", 2, "Timeout in seconds to wait for a response from a IP probe.")
 	svcFlag := flag.String("service", "", "Service action.  Valid actions are: 'start', 'stop', 'restart', 'instal' and 'uninstall'")
+	noReg := flag.Bool("n", false, "Do not register the device with the finder server.")
 	flag.Parse()
 
 	s := &Server{
-		PortNo: *port,
+		PortNo:  *port,
+		Timeout: *timeout,
+		NoReg:   *noReg,
 	}
 
 	// Create the service
