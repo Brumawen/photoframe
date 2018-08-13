@@ -137,11 +137,12 @@ func (d *Display) RefreshUSB() {
 			return
 		}
 		// Switch off the USB
-		d.logDebug("Remove USB entry.")
+		d.logDebug("Removing USB entry.")
 		err = exec.Command("sudo", "modprobe", "-r", "g_mass_storage").Run()
 		if err != nil {
 			d.logError("Error removing USB entry. " + err.Error())
 		}
+		d.logDebug("Adding USB entry.")
 		err = exec.Command("sudo", "modprobe", "g_mass_storage", "file=/piusb.bin", "stall=0", "ro=1").Run()
 		if err != nil {
 			d.logError("Error adding USB entry. " + err.Error())
