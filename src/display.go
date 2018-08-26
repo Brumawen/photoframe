@@ -43,39 +43,56 @@ func (d *Display) Run() {
 
 	// Get the list of images
 	var l []DisplayImage
-	var p string
-	if d.Srv.Config.Provider == 0 {
-		p = "Bing Image of the Day"
-		i := IodBing{Config: *d.Srv.Config}
-		l, err = i.GetImages()
-	}
+	p, n, err := d.getImageProvider()
 	if err != nil {
-		d.logError("Error getting images from", p, ". ", err.Error())
+		d.logError("Error getting image provider. ", err.Error())
+		d.LastErr = err
+		return
+	}
+	l, err = p.GetImages()
+	if err != nil {
+		d.logError("Error getting images from", n, ". ", err.Error())
 		d.LastErr = err
 		return
 	}
 
 	// Get the current weather forecast
-	d.logInfo("Getting weather forecast.")
-	w, err := GetForecast()
-	if err != nil {
-		d.logError("Error getting weather forecast.", err.Error())
-		d.LastErr = err
-		return
+	w := Weather{}
+	m := Moon{}
+	if d.Srv.Config.Weather {
+		d.logInfo("Getting weather forecast.")
+		w, err = GetForecast()
+		if err != nil {
+			d.logError("Error getting weather forecast.", err.Error())
+			d.LastErr = err
+			return
+		}
+
+		// Get the current moon phase
+		d.logInfo("Getting moon information.")
+		m, err = GetMoon()
+		if err != nil {
+			d.logError("Error getting moon phase details.", err.Error())
+			d.LastErr = err
+			return
+		}
 	}
 
-	// Get the current moon phase
-	d.logInfo("Getting moon information.")
-	m, err := GetMoon()
-	if err != nil {
-		d.logError("Error getting moon phase details.", err.Error())
-		d.LastErr = err
-		return
+	// Get the Calendar events
+	c := CalEvents{}
+	if d.Srv.Config.Calendar {
+		d.logInfo("Getting calendar event information.")
+		c, err = GetCalendarEvents()
+		if err != nil {
+			d.logInfo("Error getting calendar event information.", err.Error())
+			d.LastErr = err
+			return
+		}
 	}
 
 	// Process the images
 	d.logInfo("Building display images.")
-	dl, err := d.buildDisplayImages(l, w, m)
+	dl, err := d.buildDisplayImages(l, w, m, c)
 	if err != nil {
 		d.logError("Error building display images.", err.Error())
 		d.LastErr = err
@@ -151,7 +168,25 @@ func (d *Display) RefreshUSB() {
 	}()
 }
 
-func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon) ([]DisplayImage, error) {
+func (d *Display) getImageProvider() (ImageProvider, string, error) {
+	switch d.Srv.Config.Provider {
+	case 0:
+		n := "Bing Image of the Day"
+		p := new(IodBing)
+		p.SetConfig(*d.Srv.Config)
+		return p, n, nil
+	case 1:
+		n := "Lorem Picsum"
+		p := new(LoremPicsum)
+		p.SetConfig(*d.Srv.Config)
+		return p, n, nil
+	default:
+		n := "Unknown Image Provider"
+		return nil, n, fmt.Errorf("Image Provider '%d' is invalid", d.Srv.Config.Provider)
+	}
+}
+
+func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon, c CalEvents) ([]DisplayImage, error) {
 	rl := []DisplayImage{}
 
 	// Clear the folder first
@@ -175,10 +210,24 @@ func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon) ([]Di
 		}
 	}
 
-	for n, i := range dl {
-		if img, err := d.buildWeatherImage(n, i, w, m); err == nil {
-			rl = append(rl, img)
+	if d.Srv.Config.Weather || d.Srv.Config.Calendar {
+		n := 0
+		for _, i := range dl {
+			if d.Srv.Config.Weather {
+				if img, err := d.buildWeatherImage(n, i, w, m); err == nil {
+					rl = append(rl, img)
+					n = n + 1
+				}
+			}
+			if d.Srv.Config.Calendar {
+				if img, err := d.buildCalendarImage(n, i, c); err == nil {
+					rl = append(rl, img)
+					n = n + 1
+				}
+			}
 		}
+	} else {
+		rl = dl
 	}
 
 	return rl, nil
@@ -210,6 +259,57 @@ func (d *Display) buildWeatherImage(n int, i DisplayImage, w Weather, m Moon) (D
 				d.drawForecast(dc, w, i, 3, x-1)
 			}
 		}
+	}
+
+	// Save the new image
+	di.ImagePath = filepath.Join("./img/display", fmt.Sprintf("image%d.png", n))
+	err = dc.SavePNG(di.ImagePath)
+	if err != nil {
+		d.logError("Error saving weather image. " + err.Error())
+	}
+
+	return di, err
+}
+
+func (d *Display) buildCalendarImage(n int, i DisplayImage, c CalEvents) (DisplayImage, error) {
+	// Load the image
+	di := DisplayImage{Name: i.Name}
+	img, err := gg.LoadImage(i.ImagePath)
+	if err != nil {
+		d.logError("Error loading image " + i.ImagePath + " - " + err.Error())
+		return di, err
+	}
+
+	// Create a context for the image
+	dc := gg.NewContextForImage(img)
+
+	// Draw the day names
+	now := time.Now()
+	yer := now.Year()
+	mth := now.Month()
+	day := now.Day()
+	now = time.Date(yer, mth, day, 0, 0, 0, 0, time.Local)
+	cd := now
+
+	for i := 0; i < 4; i++ {
+		xb := i*d.xBlock + 10
+		d.drawString(dc, cd.Weekday().String(), 20, xb, 10)
+		cd = cd.Add(24 * time.Hour)
+	}
+	_, h := dc.MeasureString(now.Weekday().String())
+	ht := int(h + 30)
+
+	xq := 0
+	y := ht
+	// Draw the events onto the image
+	cdn := ""
+	for _, e := range c {
+		if cdn == "" || cdn != e.DayName {
+			cdn = e.DayName
+			xq = int(e.Start.Sub(now).Hours() / 24)
+			y = ht
+		}
+		y = d.drawCalEvent(dc, e, xq, y)
 	}
 
 	// Save the new image
@@ -335,6 +435,38 @@ func (d *Display) drawForecast(dc *gg.Context, w Weather, i int, xq int, yq int)
 	d.drawString(dc, temp, 18, xb+100, yb+40)
 }
 
+func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
+	xb := xq*d.xBlock + 10
+	gap := 3
+	fsize := 16
+
+	yb := y
+
+	t1 := fmt.Sprintf("%s (%s) %s", e.Time, e.Duration, e.Summary)
+	t2 := e.Location
+
+	if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(fsize)); err != nil {
+		d.logError("Error loading font. " + err.Error())
+	}
+	w1, h1 := dc.MeasureString(t1)
+	w2, h2 := dc.MeasureString(t2)
+
+	h := int(h1) + (2 * gap)
+	if t2 != "" {
+		h = h + int(h2) + gap
+	}
+	w := w1
+	if t2 != "" && w2 > w1 {
+		w = w2
+	}
+
+	dc.DrawRoundedRectangle(float64(xb), float64(yb), float64(w), float64(h), 4)
+
+	d.drawColourString(dc, t1, fsize, e.Colour, int(xb), y)
+
+	return int(yb)
+}
+
 func (d *Display) getWeatherIconImage(i int) (image.Image, error) {
 	fn := ""
 	switch i {
@@ -371,8 +503,10 @@ func (d *Display) getMoonIconImage(i float32) (image.Image, error) {
 }
 
 func (d *Display) drawString(dc *gg.Context, s string, h int, x int, y int) {
-	if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(h)); err != nil {
-		d.logError("Error loading font. " + err.Error())
+	if int(dc.FontHeight()) != h {
+		if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(h)); err != nil {
+			d.logError("Error loading font. " + err.Error())
+		}
 	}
 	_, sh := dc.MeasureString(s)
 
@@ -381,6 +515,46 @@ func (d *Display) drawString(dc *gg.Context, s string, h int, x int, y int) {
 
 	dc.SetColor(color.White)
 	dc.DrawString(s, float64(x), float64(y)+sh)
+}
+
+func (d *Display) drawColourString(dc *gg.Context, s string, h int, c string, x int, y int) {
+	if int(dc.FontHeight()) != h {
+		if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(h)); err != nil {
+			d.logError("Error loading font. " + err.Error())
+		}
+	}
+	_, sh := dc.MeasureString(s)
+
+	dc.SetColor(color.Black)
+	dc.DrawString(s, float64(x+1), float64(y+1)+sh)
+
+	dc.SetColor(d.getColour(c))
+	dc.DrawString(s, float64(x), float64(y)+sh)
+}
+
+func (d *Display) getColour(c string) color.Color {
+	switch c {
+	case "Red":
+		return color.RGBA{255, 0, 0, 255}
+	case "Orange":
+		return color.RGBA{255, 165, 0, 255}
+	case "Yellow":
+		return color.RGBA{255, 255, 0, 255}
+	case "Tan":
+		return color.RGBA{210, 180, 140, 255}
+	case "Chocolate":
+		return color.RGBA{210, 105, 30, 255}
+	case "Lime":
+		return color.RGBA{0, 255, 0, 255}
+	case "SkyBlue":
+		return color.RGBA{135, 206, 235, 255}
+	case "Violet":
+		return color.RGBA{238, 130, 238, 255}
+	case "LightPink":
+		return color.RGBA{255, 182, 193, 255}
+	default:
+		return color.White
+	}
 }
 
 func (d *Display) logDebug(v ...interface{}) {

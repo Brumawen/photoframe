@@ -7,6 +7,7 @@
     <title>Configure Display</title>
 
     <link rel="stylesheet" href="assets/css/uikit.min.css" />
+    <link rel="stylesheet" href="assets/css/toggle-switch.css" />
     <script src="assets/js/uikit.min.js"></script>
     <script src="assets/js/uikit-icons.min.js"></script>
     <script src="assets/js/jquery-3.3.1.min.js"></script>
@@ -34,7 +35,8 @@
                 </label>
                 <div class="uk-form-controls">
                     <Select class="uk-select uk-form-width-large" id="provider" name="provider">
-                        <option value="0">Bing Image of the Day</option>
+                        <option {{if eq .Provider 0}}selected="selected"{{end}} value="0">Bing Image of the Day</option>
+                        <option {{if eq .Provider 1}}selected="selected"{{end}} value="1">Lorem Picsum Random Image</option>
                     </Select>
                 </div>
             </div>
@@ -48,8 +50,43 @@
             </div>
         </fieldset>
         <fieldset class="uk-fieldset uk-margin-top">
+            <legend class="uk-legend">Display Data</legend>
+            <div class="uk-margin">
+                <div class="uk-form-label" for="weather">
+                    Current Weather and Forecast
+                </div>
+                <div class="uk-form-controls">
+                    <label class="switch-light switch-material uk-form-width-small" onclick="">
+                        <input id="weather" name="weather" type="checkbox" {{.EnableWeather}}>
+                        <span>
+                        <span>Off</span>
+                        <span>On</span>
+                        <a></a>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="uk-margin">
+                <div class="uk-form-label" for="calendar">
+                    Calendar Events
+                </div>
+                <div class="uk-form-controls">
+                    <label class="switch-light switch-material uk-form-width-small" onclick="">
+                        <input id="calendar" name="calendar" type="checkbox" {{.EnableCalendar}}>
+                        <span>
+                        <span>Off</span>
+                        <span>On</span>
+                        <a></a>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="uk-fieldset uk-margin-top">
             <input class="uk-button uk-button-primary" type="submit" value="Save Changes">
         </fieldset>
+
     </form>
     
     <script type="text/javascript">

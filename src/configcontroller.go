@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -17,15 +16,17 @@ type ConfigController struct {
 
 // ConfigPageData holds the data used to write to the configuration page.
 type ConfigPageData struct {
-	Resolution int
-	Provider   int
-	ImgCount   int
+	Resolution     int
+	Provider       int
+	ImgCount       int
+	EnableWeather  string
+	EnableCalendar string
 }
 
 // AddController adds the controller routes to the router
 func (c *ConfigController) AddController(router *mux.Router, s *Server) {
 	c.Srv = s
-	router.Path("/config.html").Handler(http.HandlerFunc(c.handleConfigWebPage))
+	router.Path("/config.html").Handler(Logger(c, http.HandlerFunc(c.handleConfigWebPage)))
 	router.Methods("GET").Path("/config/get").Name("GetConfig").
 		Handler(Logger(c, http.HandlerFunc(c.handleGetConfig)))
 	router.Methods("POST").Path("/config/set").Name("SetConfig").
@@ -40,8 +41,17 @@ func (c *ConfigController) handleConfigWebPage(w http.ResponseWriter, r *http.Re
 		Provider:   c.Srv.Config.Provider,
 		ImgCount:   c.Srv.Config.ImgCount,
 	}
+	if c.Srv.Config.Weather {
+		v.EnableWeather = "checked"
+	}
+	if c.Srv.Config.Calendar {
+		v.EnableCalendar = "checked"
+	}
 
-	t.Execute(w, v)
+	err := t.Execute(w, v)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }
 
 func (c *ConfigController) handleGetConfig(w http.ResponseWriter, r *http.Request) {
@@ -53,12 +63,12 @@ func (c *ConfigController) handleGetConfig(w http.ResponseWriter, r *http.Reques
 func (c *ConfigController) handleSetConfig(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	z, err := json.Marshal(r.Form)
-	fmt.Println(string(z))
-
 	res := r.Form.Get("resolution")
 	pro := r.Form.Get("provider")
 	img := r.Form.Get("imgcount")
+
+	weather := r.Form.Get("weather")
+	calendar := r.Form.Get("calendar")
 
 	if res == "" {
 		http.Error(w, "The Resolution must be specified", 500)
@@ -74,7 +84,7 @@ func (c *ConfigController) handleSetConfig(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	prov, err := strconv.Atoi(pro)
-	if err != nil || prov != 0 {
+	if err != nil || prov < 0 || prov > 1 {
 		http.Error(w, "Invalid Image Provider value", 500)
 		return
 	}
@@ -93,6 +103,8 @@ func (c *ConfigController) handleSetConfig(w http.ResponseWriter, r *http.Reques
 	c.Srv.Config.Resolution = resv
 	c.Srv.Config.Provider = prov
 	c.Srv.Config.ImgCount = imgv
+	c.Srv.Config.Weather = (weather == "on")
+	c.Srv.Config.Calendar = (calendar == "on")
 	c.Srv.Config.SetDefaults()
 
 	c.Srv.Config.WriteToFile("config.json")

@@ -24,6 +24,11 @@ type IodBing struct {
 	Config Config
 }
 
+// SetConfig sets the configuration for this provider
+func (b *IodBing) SetConfig(c Config) {
+	b.Config = c
+}
+
 // GetImages returns a slice of images to be used for display
 func (b *IodBing) GetImages() ([]DisplayImage, error) {
 	b.LogInfo("Getting latest list of images from Bing.")
@@ -87,12 +92,12 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 			if err != nil {
 				return l, err
 			}
-			b, err := ioutil.ReadAll(res.Body)
+			fd, err := ioutil.ReadAll(res.Body)
 			if err != nil {
 				return l, err
 			}
 			// Write the image data to the file
-			err = ioutil.WriteFile(fp, b, 0666)
+			err = ioutil.WriteFile(fp, fd, 0666)
 			if err != nil {
 				return l, err
 			}

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestCanGetBingImages(t *testing.T) {
+func TestCanGetLoremImages(t *testing.T) {
 	c := Config{
 		Provider:   0,
 		ImgCount:   8,
@@ -12,7 +12,7 @@ func TestCanGetBingImages(t *testing.T) {
 	}
 	c.SetDefaults()
 
-	i := IodBing{Config: c}
+	i := LoremPicsum{Config: c}
 	l, err := i.GetImages()
 	if err != nil {
 		t.Error(err)

@@ -13,6 +13,8 @@ type Config struct {
 	Resolution int    `json:"resolution"` // Resolution of the display, 0=800x480
 	Provider   int    `json:"provider"`   // Image of the Day provider
 	ImgCount   int    `json:"imgcount"`   // NUmber of images to retrieve
+	Weather    bool   `json:"weather"`    // Display weather data
+	Calendar   bool   `json:"calendar"`   // Display calendar data
 	USBPath    string `json:"usbPath"`    // Path to the USB shared folder
 }
 
