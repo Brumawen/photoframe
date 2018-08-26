@@ -32,7 +32,7 @@ func (c *LogController) handleGetLogs(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not supported.", 500)
 		return
 	}
-	out, _ := exec.Command("journalctl", "--no-pager", "-u", "WeatherForecast", "-S", "1 hour ago").CombinedOutput()
+	out, _ := exec.Command("journalctl", "--no-pager", "-u", "Photoframe", "-S", "1 hour ago").CombinedOutput()
 	w.Write([]byte(out))
 }
 

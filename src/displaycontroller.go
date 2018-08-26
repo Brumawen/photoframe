@@ -17,11 +17,18 @@ func (c *DisplayController) AddController(router *mux.Router, s *Server) {
 	c.Srv = s
 	router.Methods("GET").Path("/display/refresh").Name("RefreshDisplay").
 		Handler(Logger(c, http.HandlerFunc(c.handleRefreshDisplay)))
+	router.Methods("GET").Path("/display/rebuild").Name("RebuildDisplay").
+		Handler(Logger(c, http.HandlerFunc(c.handleRefreshDisplay)))
 }
 
 func (c *DisplayController) handleRefreshDisplay(w http.ResponseWriter, r *http.Request) {
 	c.Srv.Display.RefreshUSB()
 	w.Write([]byte("Refresh started."))
+}
+
+func (c *DisplayController) handleRebuildDisplay(w http.ResponseWriter, r *http.Request) {
+	c.Srv.Display.Run()
+	w.Write([]byte("Rebuild complete."))
 }
 
 // LogInfo is used to log information messages for this controller.
