@@ -35,6 +35,18 @@ func (d *Display) Run() {
 
 	d.IsRunning = true
 
+	// Wait until we have an internet connection
+	a := 0
+	for !gopifinder.IsInternetOnline() {
+		a = a + 1
+		if a == 5 {
+			d.logInfo("Timeout waiting for internet.")
+			return
+		}
+		d.logInfo("Waiting for internet connection.")
+		time.Sleep(time.Minute)
+	}
+
 	switch d.Srv.Config.Resolution {
 	case 0: // 800x480
 		d.xBlock = 200
@@ -312,6 +324,8 @@ func (d *Display) buildCalendarImage(n int, i DisplayImage, c CalEvents) (Displa
 		y = d.drawCalEvent(dc, e, xq, y)
 	}
 
+	d.drawCalNames(dc, 3, 3)
+
 	// Save the new image
 	di.ImagePath = filepath.Join("./img/display", fmt.Sprintf("image%d.png", n))
 	err = dc.SavePNG(di.ImagePath)
@@ -437,34 +451,47 @@ func (d *Display) drawForecast(dc *gg.Context, w Weather, i int, xq int, yq int)
 
 func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
 	xb := xq*d.xBlock + 10
-	gap := 3
+	gap := 12
 	fsize := 16
-
-	yb := y
-
-	t1 := fmt.Sprintf("%s (%s) %s", e.Time, e.Duration, e.Summary)
-	t2 := e.Location
 
 	if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(fsize)); err != nil {
 		d.logError("Error loading font. " + err.Error())
 	}
-	w1, h1 := dc.MeasureString(t1)
-	w2, h2 := dc.MeasureString(t2)
 
-	h := int(h1) + (2 * gap)
-	if t2 != "" {
-		h = h + int(h2) + gap
+	t := fmt.Sprintf("%s (%s) %s", e.Time, e.Duration, e.Summary)
+
+	w, h := dc.MeasureString(t)
+	max := float64(d.xBlock - 10)
+	for w > max {
+		t = t[:len(t)-1]
+		w, h = dc.MeasureString(t)
 	}
-	w := w1
-	if t2 != "" && w2 > w1 {
-		w = w2
+	t = strings.TrimSpace(t)
+
+	d.drawColourString(dc, t, fsize, e.Colour, int(xb), y)
+
+	return y + int(h) + gap
+}
+
+func (d *Display) drawCalNames(dc *gg.Context, xq int, yq int) {
+	nl, err := GetCalendarNames()
+	if err != nil {
+		d.logError("Failed to get Calendar Names. " + err.Error())
+	} else {
+		fsize := 20
+
+		if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(fsize)); err != nil {
+			d.logError("Error loading font. " + err.Error())
+		}
+
+		yb := d.yBlock * yq
+		xb := d.xBlock * xq
+		for _, name := range nl {
+			_, h := dc.MeasureString(name.Name)
+			d.drawColourString(dc, name.Name, fsize, name.Colour, xb, yb)
+			yb = yb + int(h) + 15
+		}
 	}
-
-	dc.DrawRoundedRectangle(float64(xb), float64(yb), float64(w), float64(h), 4)
-
-	d.drawColourString(dc, t1, fsize, e.Colour, int(xb), y)
-
-	return int(yb)
 }
 
 func (d *Display) getWeatherIconImage(i int) (image.Image, error) {
