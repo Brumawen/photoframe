@@ -450,18 +450,32 @@ func (d *Display) drawForecast(dc *gg.Context, w Weather, i int, xq int, yq int)
 }
 
 func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
-	xb := xq*d.xBlock + 10
+	xb := xq*d.xBlock + 15
 	gap := 12
-	fsize := 16
+	fsize := 20
 
 	if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(fsize)); err != nil {
 		d.logError("Error loading font. " + err.Error())
 	}
 
-	t := fmt.Sprintf("%s (%s) %s", e.Time, e.Duration, e.Summary)
+	t := fmt.Sprintf("%s (%s)", e.Time, e.Duration)
 
 	w, h := dc.MeasureString(t)
 	max := float64(d.xBlock - 10)
+	for w > max {
+		t = t[:len(t)-1]
+		w, h = dc.MeasureString(t)
+	}
+	t = strings.TrimSpace(t)
+
+	d.drawColourString(dc, t, fsize, e.Colour, int(xb), y)
+
+	y = y + int(h) + 5
+
+	t = fmt.Sprintf(" %s", e.Summary)
+
+	w, h = dc.MeasureString(t)
+	max = float64(d.xBlock - 10)
 	for w > max {
 		t = t[:len(t)-1]
 		w, h = dc.MeasureString(t)
