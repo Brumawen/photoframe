@@ -192,6 +192,11 @@ func (d *Display) getImageProvider() (ImageProvider, string, error) {
 		p := new(LoremPicsum)
 		p.SetConfig(*d.Srv.Config)
 		return p, n, nil
+	case 2:
+		n := "Pexels"
+		p := new(Pexels)
+		p.SetConfig(*d.Srv.Config)
+		return p, n, nil
 	default:
 		n := "Unknown Image Provider"
 		return nil, n, fmt.Errorf("Image Provider '%d' is invalid", d.Srv.Config.Provider)
@@ -273,6 +278,8 @@ func (d *Display) buildWeatherImage(n int, i DisplayImage, w Weather, m Moon) (D
 		}
 	}
 
+	d.drawCopyright(dc, i.Copyright)
+
 	// Save the new image
 	di.ImagePath = filepath.Join("./img/display", fmt.Sprintf("image%d.png", n))
 	err = dc.SavePNG(di.ImagePath)
@@ -304,7 +311,7 @@ func (d *Display) buildCalendarImage(n int, i DisplayImage, c CalEvents) (Displa
 	cd := now
 
 	for i := 0; i < 4; i++ {
-		xb := i*d.xBlock + 10
+		xb := i*d.xBlock + 20
 		d.drawString(dc, cd.Weekday().String(), 20, xb, 10)
 		cd = cd.Add(24 * time.Hour)
 	}
@@ -326,6 +333,8 @@ func (d *Display) buildCalendarImage(n int, i DisplayImage, c CalEvents) (Displa
 
 	d.drawCalNames(dc, 3, 3)
 
+	d.drawCopyright(dc, i.Copyright)
+
 	// Save the new image
 	di.ImagePath = filepath.Join("./img/display", fmt.Sprintf("image%d.png", n))
 	err = dc.SavePNG(di.ImagePath)
@@ -334,6 +343,14 @@ func (d *Display) buildCalendarImage(n int, i DisplayImage, c CalEvents) (Displa
 	}
 
 	return di, err
+}
+
+func (d *Display) drawCopyright(dc *gg.Context, cw string) {
+	if cw != "" {
+		d.drawString(dc, cw, 14, 20, dc.Height()-20)
+	}
+	ts := time.Now().Format("15:04")
+	d.drawString(dc, ts, 12, dc.Width()-50, dc.Height()-18)
 }
 
 func (d *Display) drawCurrentTemp(dc *gg.Context, w Weather, xq int, yq int) {
@@ -450,7 +467,7 @@ func (d *Display) drawForecast(dc *gg.Context, w Weather, i int, xq int, yq int)
 }
 
 func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
-	xb := xq*d.xBlock + 15
+	xb := xq*d.xBlock + 20
 	gap := 12
 	fsize := 20
 

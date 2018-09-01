@@ -20,6 +20,10 @@ type Moon struct {
 func GetMoon() (Moon, error) {
 	m := Moon{}
 	resp, err := http.Get("http://localhost:20511/moon/get")
+	if resp != nil {
+		defer resp.Body.Close()
+		resp.Close = true
+	}
 	if err == nil {
 		b, err := ioutil.ReadAll(resp.Body)
 		if err == nil {

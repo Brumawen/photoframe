@@ -36,6 +36,10 @@ func (b *IodBing) GetImages() ([]DisplayImage, error) {
 	l := []DisplayImage{}
 	// Get the data from the Bing web site
 	resp, err := http.Get(fmt.Sprintf("http://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=%d&mkt=za", b.Config.ImgCount))
+	if resp != nil {
+		defer resp.Body.Close()
+		resp.Close = true
+	}
 	if err == nil {
 		j, err := ioutil.ReadAll(resp.Body)
 		if err == nil {
@@ -89,6 +93,10 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 			// File does not exist, so download it
 			b.LogInfo("Downloading", fn)
 			res, err := http.Get("https://bing.com" + i.Urlbase + res + ".jpg")
+			if res != nil {
+				defer res.Body.Close()
+				res.Close = true
+			}
 			if err != nil {
 				return l, err
 			}
@@ -115,6 +123,7 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 		}
 		l = append(l, DisplayImage{
 			Name:      fn,
+			Copyright: i.Copyright,
 			ImagePath: fp,
 		})
 	}

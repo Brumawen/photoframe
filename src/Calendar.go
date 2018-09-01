@@ -35,6 +35,10 @@ type CalNames []struct {
 func GetCalendarNames() (CalNames, error) {
 	c := CalNames{}
 	resp, err := http.Get("http://localhost:20513/calendar/get")
+	if resp != nil {
+		defer resp.Body.Close()
+		resp.Close = true
+	}
 	if err == nil {
 		b, err := ioutil.ReadAll(resp.Body)
 		if err == nil {
@@ -53,6 +57,10 @@ func GetCalendarNames() (CalNames, error) {
 func GetCalendarEvents() (CalEvents, error) {
 	c := CalEvents{}
 	resp, err := http.Get("http://localhost:20513/calendar/get/4")
+	if resp != nil {
+		defer resp.Body.Close()
+		resp.Close = true
+	}
 	if err == nil {
 		b, err := ioutil.ReadAll(resp.Body)
 		if err == nil {

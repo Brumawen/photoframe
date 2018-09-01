@@ -18,7 +18,7 @@ func (c *DisplayController) AddController(router *mux.Router, s *Server) {
 	router.Methods("GET").Path("/display/refresh").Name("RefreshDisplay").
 		Handler(Logger(c, http.HandlerFunc(c.handleRefreshDisplay)))
 	router.Methods("GET").Path("/display/rebuild").Name("RebuildDisplay").
-		Handler(Logger(c, http.HandlerFunc(c.handleRefreshDisplay)))
+		Handler(Logger(c, http.HandlerFunc(c.handleRebuildDisplay)))
 }
 
 func (c *DisplayController) handleRefreshDisplay(w http.ResponseWriter, r *http.Request) {

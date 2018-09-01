@@ -44,6 +44,10 @@ func (p *LoremPicsum) GetImages() ([]DisplayImage, error) {
 		fp := filepath.Join(path, fn)
 		url := fmt.Sprintf("https://picsum.photos%s?random", r)
 		res, err := http.Get(url)
+		if res != nil {
+			defer res.Body.Close()
+			res.Close = true
+		}
 		if err != nil {
 			return l, err
 		}

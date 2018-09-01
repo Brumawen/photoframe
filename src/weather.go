@@ -40,6 +40,10 @@ type Weather struct {
 func GetForecast() (Weather, error) {
 	f := Weather{}
 	resp, err := http.Get("http://localhost:20511/weather/forecast")
+	if resp != nil {
+		defer resp.Body.Close()
+		resp.Close = true
+	}
 	if err == nil {
 		b, err := ioutil.ReadAll(resp.Body)
 		if err == nil {
