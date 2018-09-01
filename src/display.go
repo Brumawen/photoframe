@@ -347,10 +347,10 @@ func (d *Display) buildCalendarImage(n int, i DisplayImage, c CalEvents) (Displa
 
 func (d *Display) drawCopyright(dc *gg.Context, cw string) {
 	if cw != "" {
-		d.drawString(dc, cw, 14, 20, dc.Height()-20)
+		d.drawString(dc, cw, 14, 20, dc.Height()-16)
 	}
 	ts := time.Now().Format("15:04")
-	d.drawString(dc, ts, 12, dc.Width()-50, dc.Height()-18)
+	d.drawString(dc, ts, 12, dc.Width()-56, dc.Height()-18)
 }
 
 func (d *Display) drawCurrentTemp(dc *gg.Context, w Weather, xq int, yq int) {
