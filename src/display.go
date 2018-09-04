@@ -310,12 +310,20 @@ func (d *Display) buildCalendarImage(n int, i DisplayImage, c CalEvents) (Displa
 	now = time.Date(yer, mth, day, 0, 0, 0, 0, time.Local)
 	cd := now
 
+	solcol := gg.NewSolidPattern(color.RGBA{0, 0, 0, 128})
+
+	_, h := dc.MeasureString(now.Weekday().String())
+
 	for i := 0; i < 4; i++ {
 		xb := i*d.xBlock + 20
+
+		dc.SetFillStyle(solcol)
+		dc.DrawRoundedRectangle(float64(xb-10), 5, float64(d.xBlock-20), h+15, 5)
+		dc.Fill()
+
 		d.drawString(dc, cd.Weekday().String(), 20, xb, 10)
 		cd = cd.Add(24 * time.Hour)
 	}
-	_, h := dc.MeasureString(now.Weekday().String())
 	ht := int(h + 30)
 
 	xq := 0
@@ -468,7 +476,7 @@ func (d *Display) drawForecast(dc *gg.Context, w Weather, i int, xq int, yq int)
 
 func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
 	xb := xq*d.xBlock + 20
-	gap := 12
+	gap := 15
 	fsize := 20
 
 	if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(fsize)); err != nil {
@@ -481,7 +489,8 @@ func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
 	var max float64
 
 	if e.Duration != "All Day" {
-		t = fmt.Sprintf("%s (%s)", e.Time, e.Duration)
+		//t = fmt.Sprintf("%s (%s)", e.Time, e.Duration)
+		t = fmt.Sprintf("%s", e.Time)
 
 		w, h = dc.MeasureString(t)
 		max = float64(d.xBlock - 10)
@@ -496,7 +505,8 @@ func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
 		y = y + int(h) + 5
 	}
 
-	t = fmt.Sprintf(" %s", e.Summary)
+	t = fmt.Sprintf("%s", e.Summary)
+	t = strings.TrimSpace(t)
 
 	w, h = dc.MeasureString(t)
 	max = float64(d.xBlock - 10)
