@@ -505,7 +505,9 @@ func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
 		y = y + int(h) + 5
 	}
 
-	t = fmt.Sprintf("%s", e.Summary)
+	sm := strings.Replace(e.Summary, "'s birthday", "", -1)
+
+	t = fmt.Sprintf("%s", sm)
 	t = strings.TrimSpace(t)
 
 	w, h = dc.MeasureString(t)
@@ -534,10 +536,15 @@ func (d *Display) drawCalNames(dc *gg.Context, xq int, yq int) {
 
 		yb := d.yBlock * yq
 		xb := d.xBlock * xq
-		for _, name := range nl {
+		for i, name := range nl {
 			_, h := dc.MeasureString(name.Name)
 			d.drawColourString(dc, name.Name, fsize, name.Colour, xb, yb)
-			yb = yb + int(h) + 15
+			if i == 2 {
+				yb = d.yBlock * yq
+				xb = d.xBlock * (xq - 1)
+			} else {
+				yb = yb + int(h) + 15
+			}
 		}
 	}
 }
