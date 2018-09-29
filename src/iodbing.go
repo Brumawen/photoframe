@@ -79,6 +79,7 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 		}
 	}
 
+	xRes, yRes := b.Config.GetResolution()
 	res := ""
 	switch b.Config.Resolution {
 	case 0: // 800x480
@@ -111,16 +112,13 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 			}
 		}
 		// Resize the image if required
-		switch b.Config.Resolution {
-		case 0: // 800x480
-			// Resize the images from 800x600 to 800x480
-			if img, err := imaging.Open(fp); err != nil {
-				b.LogError("Error opening image for resizing. " + err.Error())
-			} else {
-				img = imaging.Fill(img, 800, 480, imaging.Center, imaging.Lanczos)
-				imaging.Save(img, fp)
-			}
+		if img, err := imaging.Open(fp); err != nil {
+			b.LogError("Error opening image for resizing. " + err.Error())
+		} else {
+			img = imaging.Fill(img, xRes, yRes, imaging.Center, imaging.Lanczos)
+			imaging.Save(img, fp)
 		}
+
 		l = append(l, DisplayImage{
 			Name:      fn,
 			Copyright: i.Copyright,

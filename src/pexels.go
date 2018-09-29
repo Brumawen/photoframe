@@ -84,13 +84,7 @@ func (p *Pexels) downloadImages(pd *pexelsData) ([]DisplayImage, error) {
 		}
 	}
 
-	xRes := 0
-	yRes := 0
-	switch p.Config.Resolution {
-	case 0: // 800x480
-		xRes = 800
-		yRes = 480
-	}
+	xRes, yRes := p.Config.GetResolution()
 
 	for _, i := range pd.Photos {
 		// Check if the file already exists

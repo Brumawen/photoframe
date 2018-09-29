@@ -18,6 +18,20 @@ type Config struct {
 	USBPath    string `json:"usbPath"`    // Path to the USB shared folder
 }
 
+// GetResolution returns the required image resolution (x,y)
+func (c *Config) GetResolution() (int, int) {
+	xRes := 0
+	yRes := 0
+
+	switch c.Resolution {
+	case 0: // 800x480
+		xRes = 800
+		yRes = 480
+	}
+
+	return xRes, yRes
+}
+
 // ReadFromFile will read the configuration settings from the specified file
 func (c *Config) ReadFromFile(path string) error {
 	_, err := os.Stat(path)

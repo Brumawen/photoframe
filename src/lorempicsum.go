@@ -22,11 +22,8 @@ func (p *LoremPicsum) SetConfig(c Config) {
 func (p *LoremPicsum) GetImages() ([]DisplayImage, error) {
 	p.LogInfo("Getting latest list of images from Lorem Picsum.")
 
-	r := ""
-	switch p.Config.Resolution {
-	case 0: // 800x480
-		r = "/800/480/"
-	}
+	xRes, yRes := p.Config.GetResolution()
+	r := fmt.Sprintf("/%d/%d/", xRes, yRes)
 
 	l := []DisplayImage{}
 	path := "./img/lorem"

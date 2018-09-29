@@ -84,7 +84,7 @@ func (c *ConfigController) handleSetConfig(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	prov, err := strconv.Atoi(pro)
-	if err != nil || prov < 0 || prov > 2 {
+	if err != nil || prov < 0 || prov > 3 {
 		http.Error(w, "Invalid Image Provider value", 500)
 		return
 	}

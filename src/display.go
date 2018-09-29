@@ -197,6 +197,11 @@ func (d *Display) getImageProvider() (ImageProvider, string, error) {
 		p := new(Pexels)
 		p.SetConfig(*d.Srv.Config)
 		return p, n, nil
+	case 3:
+		n := "National Geographic Photo of the Day"
+		p := new(NatGeo)
+		p.SetConfig(*d.Srv.Config)
+		return p, n, nil
 	default:
 		n := "Unknown Image Provider"
 		return nil, n, fmt.Errorf("Image Provider '%d' is invalid", d.Srv.Config.Provider)
@@ -467,11 +472,11 @@ func (d *Display) drawForecast(dc *gg.Context, w Weather, i int, xq int, yq int)
 	}
 	// Draw the day name
 	if fd.Name != "" {
-		d.drawString(dc, fd.Name, 18, xb+100, yb+10)
+		d.drawString(dc, fd.Name, 20, xb+100, yb+10)
 	}
 	// Draw the temperature
 	temp := fmt.Sprintf("%.0f / %.0f", fd.TempMax, fd.TempMin)
-	d.drawString(dc, temp, 18, xb+100, yb+40)
+	d.drawString(dc, temp, 20, xb+100, yb+40)
 }
 
 func (d *Display) drawCalEvent(dc *gg.Context, e CalEvent, xq int, y int) int {
@@ -585,11 +590,11 @@ func (d *Display) getMoonIconImage(i float32) (image.Image, error) {
 }
 
 func (d *Display) drawString(dc *gg.Context, s string, h int, x int, y int) {
-	if int(dc.FontHeight()) != h {
-		if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(h)); err != nil {
-			d.logError("Error loading font. " + err.Error())
-		}
+	//if int(dc.FontHeight()) != h {
+	if err := dc.LoadFontFace("./html/assets/font/Roboto-Black.ttf", float64(h)); err != nil {
+		d.logError("Error loading font. " + err.Error())
 	}
+	//}
 	_, sh := dc.MeasureString(s)
 
 	dc.SetColor(color.Black)
