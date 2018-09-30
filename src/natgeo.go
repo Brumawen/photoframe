@@ -115,15 +115,52 @@ func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 			}
 		}
 		if load {
+			// Add the image to the list to return
 			l = append(l, DisplayImage{
 				Name:      fn,
 				Copyright: fmt.Sprintf("%s - %s", i.Title, i.Credit),
 				ImagePath: fp,
 			})
+		} else {
+			// There was an issue processing the image,
+			// remove the file from the disk if anything was written
+			if _, err := os.Stat(fp); err == nil {
+				p.LogInfo("Removing file", fp)
+				os.Remove(fp)
+			}
 		}
 		if n+1 == p.Config.ImgCount {
 			break
 		}
+	}
+
+	// Remove any other file in this folder
+	fi, err := ioutil.ReadDir(path)
+	if err == nil {
+		for _, f := range fi {
+			// Check if this file is in the list
+			remove := true
+			for _, i := range l {
+				if i.Name == f.Name() {
+					remove = false
+					break
+				}
+			}
+			if remove {
+				p.LogInfo("Removing", f.Name())
+				err = os.Remove(filepath.Join(path, f.Name()))
+				if err != nil {
+					p.LogInfo("Error removing image file", f.Name(), ". ", err.Error())
+				}
+			}
+		}
+	}
+	if err == nil {
+		b, err := json.Marshal(l)
+		if err != nil {
+			return nil, err
+		}
+		ioutil.WriteFile("lastnatgeo.json", b, 0666)
 	}
 
 	return l, nil
@@ -141,20 +178,24 @@ func (p *NatGeo) downloadImage(fp string, fn string, url string, xRes int, yRes 
 	}
 	fd, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		p.LogError("Error reading image file from response body.", err.Error())
+		p.LogError("Error reading image file from response body.", url, ". ", err.Error())
 		return err
 	}
 	err = ioutil.WriteFile(fp, fd, 0666)
 	if err != nil {
-		p.LogError("Error writing image file.", err.Error())
+		p.LogError("Error writing image file", fp, ". ", err.Error())
 		return err
 	}
+	// Resize the image
 	img, err := imaging.Open(fp)
 	if err != nil {
-		p.LogError("Error opening image for resizing.", err.Error())
+		p.LogError("Error opening image file", fp, "for resizing.", err.Error())
 	} else {
 		img = imaging.Fill(img, xRes, yRes, imaging.Center, imaging.Lanczos)
 		err = imaging.Save(img, fp)
+		if err != nil {
+			p.LogError("Error saving resized image file", fp, ".", err.Error())
+		}
 	}
 
 	return err

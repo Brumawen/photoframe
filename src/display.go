@@ -468,7 +468,7 @@ func (d *Display) drawForecast(dc *gg.Context, w Weather, i int, xq int, yq int)
 	}
 	// Draw the weather description
 	if fd.WeatherDesc != "" {
-		d.drawString(dc, fd.WeatherDesc, 15, xb+10, yb+70)
+		d.drawString(dc, fd.WeatherDesc, 16, xb+10, yb+70)
 	}
 	// Draw the day name
 	if fd.Name != "" {

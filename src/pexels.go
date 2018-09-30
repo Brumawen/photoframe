@@ -103,6 +103,13 @@ func (p *Pexels) downloadImages(pd *pexelsData) ([]DisplayImage, error) {
 				Copyright: i.Photographer,
 				ImagePath: fp,
 			})
+		} else {
+			// There was an issue processing the image,
+			// remove the file from the disk if anything was written
+			if _, err := os.Stat(fp); err == nil {
+				p.LogInfo("Removing file", fp)
+				os.Remove(fp)
+			}
 		}
 	}
 
@@ -148,13 +155,18 @@ func (p *Pexels) downloadImage(fp string, fn string, id int, xRes int, yRes int)
 		res.Close = true
 	}
 	if err != nil {
+		p.LogError("Error getting image file from url", url, ". ", err.Error())
 		return err
 	}
 	fd, err := ioutil.ReadAll(res.Body)
 	if err != nil {
+		p.LogError("Error reading image file from response body.", url, ". ", err.Error())
 		return err
 	}
 	err = ioutil.WriteFile(fp, fd, 0666)
+	if err != nil {
+		p.LogError("Error writing image file", fp, ". ", err.Error())
+	}
 	return err
 }
 

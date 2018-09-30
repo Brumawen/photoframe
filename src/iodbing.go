@@ -90,40 +90,29 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 		// Check to see if the file already exists
 		fn := filepath.Base(i.Urlbase) + ".jpg"
 		fp := filepath.Join(path, fn)
+		load := true
 		if _, err := os.Stat(fp); os.IsNotExist(err) {
 			// File does not exist, so download it
-			b.LogInfo("Downloading", fn)
-			res, err := http.Get("https://bing.com" + i.Urlbase + res + ".jpg")
-			if res != nil {
-				defer res.Body.Close()
-				res.Close = true
-			}
-			if err != nil {
-				return l, err
-			}
-			fd, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				return l, err
-			}
-			// Write the image data to the file
-			err = ioutil.WriteFile(fp, fd, 0666)
-			if err != nil {
-				return l, err
-			}
-		}
-		// Resize the image if required
-		if img, err := imaging.Open(fp); err != nil {
-			b.LogError("Error opening image for resizing. " + err.Error())
-		} else {
-			img = imaging.Fill(img, xRes, yRes, imaging.Center, imaging.Lanczos)
-			imaging.Save(img, fp)
-		}
+			b.LogInfo("Downloading", fp)
+			url := "https://bing.com" + i.Urlbase + res + ".jpg"
+			err = b.downloadImage(fp, fn, url, xRes, yRes)
 
-		l = append(l, DisplayImage{
-			Name:      fn,
-			Copyright: i.Copyright,
-			ImagePath: fp,
-		})
+		}
+		if load {
+			// Add the image to the list to return
+			l = append(l, DisplayImage{
+				Name:      fn,
+				Copyright: i.Copyright,
+				ImagePath: fp,
+			})
+		} else {
+			// There was an issue processing the image,
+			// remove the file from the disk if anything was written
+			if _, err := os.Stat(fp); err == nil {
+				b.LogInfo("Removing file", fp)
+				os.Remove(fp)
+			}
+		}
 	}
 
 	// Remove any other file in this folder
@@ -156,6 +145,40 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 	}
 
 	return l, err
+}
+
+func (b *IodBing) downloadImage(fp string, fn string, url string, xRes int, yRes int) error {
+	res, err := http.Get(url)
+	if res != nil {
+		defer res.Body.Close()
+		res.Close = true
+	}
+	if err != nil {
+		b.LogError("Error getting image file from url", url, ". ", err.Error())
+		return err
+	}
+	fd, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		b.LogError("Error reading image file from response body.", url, ". ", err.Error())
+		return err
+	}
+	err = ioutil.WriteFile(fp, fd, 0666)
+	if err != nil {
+		b.LogError("Error writing image file", fp, ". ", err.Error())
+		return err
+	}
+	// Resize the image
+	img, err := imaging.Open(fp)
+	if err != nil {
+		b.LogError("Error opening image for resizing. " + err.Error())
+	} else {
+		img = imaging.Fill(img, xRes, yRes, imaging.Center, imaging.Lanczos)
+		err = imaging.Save(img, fp)
+		if err != nil {
+			b.LogError("Error saving resized image file", fp, ".", err.Error())
+		}
+	}
+	return err
 }
 
 // LogInfo is used to log information messages for this controller.
