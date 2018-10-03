@@ -18,8 +18,11 @@ type natgeoData struct {
 	Items            []struct {
 		Title       string  `json:"title"`
 		Credit      string  `json:"credit"`
+		GUID        string  `json:"guid,omitempty"`
+		URL         string  `json:"url"`
 		ProfileURL  string  `json:"profileUrl"`
 		AspectRatio float64 `json:"aspectRatio"`
+		YourShot    bool    `json:"yourShot"`
 		Sizes       struct {
 			Num240  string `json:"240"`
 			Num320  string `json:"320"`
@@ -50,22 +53,20 @@ func (p *NatGeo) GetImages() ([]DisplayImage, error) {
 
 	l := []DisplayImage{}
 	// Get the data from the National Geographic site
-	url := "https://www.nationalgeographic.com/photography/photo-of-the-day/_jcr_content/.gallery.json"
-	res, err := http.Get(url)
-	if res != nil {
-		defer res.Body.Close()
-		res.Close = true
-	}
+	ngd, err := p.getNGData("https://www.nationalgeographic.com/photography/photo-of-the-day/_jcr_content/.gallery.json")
+
 	if err == nil {
-		j, err := ioutil.ReadAll(res.Body)
-		if err == nil {
-			ngd := natgeoData{}
-			err = json.Unmarshal(j, &ngd)
+		// Check if we have enough data
+		if len(ngd.Items) < p.Config.ImgCount && ngd.PreviousEndpoint != "" {
+			ngd2, err := p.getNGData("https://www.nationalgeographic.com" + ngd.PreviousEndpoint)
 			if err == nil {
-				l, err = p.downloadImages(&ngd)
+				for _, i := range ngd2.Items {
+					ngd.Items = append(ngd.Items, i)
+				}
 			}
 		}
-
+		// Download the images
+		l, err = p.downloadImages(&ngd)
 	}
 
 	if err != nil {
@@ -83,6 +84,28 @@ func (p *NatGeo) GetImages() ([]DisplayImage, error) {
 	return l, err
 }
 
+func (p *NatGeo) getNGData(url string) (natgeoData, error) {
+	// Get the data from the National Geographic site
+	res, err := http.Get(url)
+	if res != nil {
+		defer res.Body.Close()
+		res.Close = true
+	}
+	if err != nil {
+		return natgeoData{}, err
+	}
+	j, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return natgeoData{}, err
+	}
+	ngd := natgeoData{}
+	err = json.Unmarshal(j, &ngd)
+	if err != nil {
+		return natgeoData{}, err
+	}
+	return ngd, nil
+}
+
 func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 	l := []DisplayImage{}
 	path := "./img/natgeo"
@@ -98,7 +121,14 @@ func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 	xRes, yRes := p.Config.GetResolution()
 
 	for n, i := range ngd.Items {
-		id := p.getImageID(i.ProfileURL)
+		var id string
+		if i.ProfileURL != "" {
+			id = p.getImageID(i.ProfileURL)
+		} else {
+			if i.GUID != "" {
+				id = i.GUID
+			}
+		}
 		fn := fmt.Sprintf("%s.jpg", id)
 		fp := filepath.Join(path, fn)
 		load := true
@@ -108,10 +138,17 @@ func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 			case 0: // 800x480
 				url = i.Sizes.Num800
 			}
-			p.LogInfo("Downloading", i.Title, fn)
-			err = p.downloadImage(fp, fn, url, xRes, yRes)
-			if err != nil {
+			if url == "" {
+				url = i.URL
+			}
+			if url == "" {
 				load = false
+			} else {
+				p.LogInfo("Downloading", i.Title, fn)
+				err = p.downloadImage(fp, fn, url, xRes, yRes)
+				if err != nil {
+					load = false
+				}
 			}
 		}
 		if load {
