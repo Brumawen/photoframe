@@ -139,7 +139,10 @@ func (d *Display) Run() {
 			if img, err := imaging.Open(i.ImagePath); err != nil {
 				d.logError("Failed to open image for translation. " + err.Error())
 			} else {
-				imaging.Save(img, p)
+				err = imaging.Save(img, p)
+				if err != nil {
+					d.logError("Failed to save image to USB display folder." + err.Error())
+				}
 			}
 		}
 	}

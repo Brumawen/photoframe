@@ -94,6 +94,7 @@ func (p *Pexels) downloadImages(pd *pexelsData) ([]DisplayImage, error) {
 		if _, err := os.Stat(fp); os.IsNotExist(err) {
 			err = p.downloadImage(fp, fn, i.ID, xRes, yRes)
 			if err != nil {
+				p.LogError("Failed to download image '"+fn+"'.", err.Error())
 				load = false
 			}
 		}
