@@ -130,6 +130,8 @@ func (d *Display) Run() {
 			}
 		}
 
+		d.StopUSB()
+
 		// Move the image files to the folder for display on the Photo Frame
 		for _, i := range dl {
 			n := filepath.Base(i.ImagePath)
@@ -145,18 +147,38 @@ func (d *Display) Run() {
 				}
 			}
 		}
-	}
 
-	// Refresh the USB mount
-	d.RefreshUSB()
+		d.StartUSB()
+	}
 
 	d.IsRunning = false
 	d.LastErr = nil
 	d.logInfo("Processing complete.")
 }
 
-// RefreshUSB will remove and readd the USB mount, so that the display will trigger a reload of the images
-func (d *Display) RefreshUSB() {
+// StopUSB will stop the USB running by removing the USB mount
+func (d *Display) StopUSB() {
+	d.logInfo("Stopping USB display")
+	myInfo, err := gopifinder.NewDeviceInfo()
+	if err != nil {
+		d.logError("Error getting device information. " + err.Error())
+		return
+	}
+	if myInfo.OS != "Linux" {
+		d.logInfo("Refresh of USB is not supported on " + myInfo.OS)
+		return
+	}
+
+	// Switch off the USB
+	d.logDebug("Removing USB entry.")
+	err = exec.Command("sudo", "modprobe", "-r", "g_mass_storage").Run()
+	if err != nil {
+		d.logError("Error removing USB entry. " + err.Error())
+	}
+}
+
+// StartUSB will add the USB mount, so that the display will trigger a reload of the images
+func (d *Display) StartUSB() {
 	go func() {
 		d.logInfo("Refreshing USB display")
 		myInfo, err := gopifinder.NewDeviceInfo()
@@ -168,12 +190,7 @@ func (d *Display) RefreshUSB() {
 			d.logInfo("Refresh of USB is not supported on " + myInfo.OS)
 			return
 		}
-		// Switch off the USB
-		d.logDebug("Removing USB entry.")
-		err = exec.Command("sudo", "modprobe", "-r", "g_mass_storage").Run()
-		if err != nil {
-			d.logError("Error removing USB entry. " + err.Error())
-		}
+		// Switch on the USB
 		d.logDebug("Adding USB entry.")
 		err = exec.Command("sudo", "modprobe", "g_mass_storage", "file=/piusb.bin", "stall=0", "ro=1").Run()
 		if err != nil {

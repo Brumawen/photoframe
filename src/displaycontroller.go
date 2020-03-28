@@ -22,7 +22,8 @@ func (c *DisplayController) AddController(router *mux.Router, s *Server) {
 }
 
 func (c *DisplayController) handleRefreshDisplay(w http.ResponseWriter, r *http.Request) {
-	c.Srv.Display.RefreshUSB()
+	c.Srv.Display.StopUSB()
+	c.Srv.Display.StartUSB()
 	w.Write([]byte("Refresh started."))
 }
 
