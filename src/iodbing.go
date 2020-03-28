@@ -88,12 +88,11 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 
 	for _, i := range bd.Images {
 		// Check to see if the file already exists
-		fr := []rune(i.Urlbase)[7:]
-		fs := string(fr)
+		fs := string([]rune(i.Urlbase)[7:])
 		fn := filepath.Base(fs) + ".jpg"
 		fp := filepath.Join(path, fn)
 		load := true
-		b.LogInfo("Checking if file '", fp, "' exits")
+		b.LogInfo("Checking if file '", fp, "' exits (", i.Urlbase, ")")
 		_, err := os.Stat(fp)
 		if os.IsNotExist(err) {
 			// File does not exist, so download it

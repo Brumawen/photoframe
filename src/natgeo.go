@@ -16,23 +16,12 @@ type natgeoData struct {
 	GalleryTitle     string `json:"galleryTitle"`
 	PreviousEndpoint string `json:"previousEndpoint"`
 	Items            []struct {
-		Title       string  `json:"title"`
-		Credit      string  `json:"credit"`
-		GUID        string  `json:"guid,omitempty"`
-		URL         string  `json:"url"`
-		ProfileURL  string  `json:"profileUrl"`
-		AspectRatio float64 `json:"aspectRatio"`
-		YourShot    bool    `json:"yourShot"`
-		Sizes       struct {
-			Num240  string `json:"240"`
-			Num320  string `json:"320"`
-			Num500  string `json:"500"`
-			Num640  string `json:"640"`
-			Num800  string `json:"800"`
-			Num1024 string `json:"1024"`
-			Num1600 string `json:"1600"`
-			Num2048 string `json:"2048"`
-		} `json:"sizes"`
+		Image struct {
+			Title       string  `json:"title"`
+			Credit      string  `json:"credit"`
+			URI         string  `json:"uri"`
+			AspectRatio float64 `json:"aspectRatio"`
+		} `json:"image"`
 	} `json:"items"`
 }
 
@@ -70,6 +59,7 @@ func (p *NatGeo) GetImages() ([]DisplayImage, error) {
 	}
 
 	if err != nil {
+		p.LogError("Error getting Images. ", err.Error())
 		// Check to see if we already have the last response cached
 		fn := "lastnatgeo.json"
 		if _, err := os.Stat(fn); !os.IsNotExist(err) {
@@ -121,30 +111,16 @@ func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 	xRes, yRes := p.Config.GetResolution()
 
 	for n, i := range ngd.Items {
-		var id string
-		if i.ProfileURL != "" {
-			id = p.getImageID(i.ProfileURL)
-		} else {
-			if i.GUID != "" {
-				id = i.GUID
-			}
-		}
-		fn := fmt.Sprintf("%s.jpg", id)
+		fn := p.getImageID(i.Image.URI)
 		fp := filepath.Join(path, fn)
 		load := true
+		p.LogInfo("Checking image ", fp)
 		if _, err := os.Stat(fp); os.IsNotExist(err) {
-			url := ""
-			switch p.Config.Resolution {
-			case 0: // 800x480
-				url = i.Sizes.Num800
-			}
-			if url == "" {
-				url = i.URL
-			}
+			url := i.Image.URI
 			if url == "" {
 				load = false
 			} else {
-				p.LogInfo("Downloading", i.Title, fn)
+				p.LogInfo("Downloading", i.Image.Title, fn)
 				err = p.downloadImage(fp, fn, url, xRes, yRes)
 				if err != nil {
 					load = false
@@ -155,7 +131,7 @@ func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 			// Add the image to the list to return
 			l = append(l, DisplayImage{
 				Name:      fn,
-				Copyright: fmt.Sprintf("%s - %s", i.Title, i.Credit),
+				Copyright: fmt.Sprintf("%s - %s", i.Image.Title, i.Image.Credit),
 				ImagePath: fp,
 			})
 		} else {
