@@ -112,11 +112,21 @@ func (d *Display) Run() {
 	}
 
 	// Check if the USB folder, where the files for display will be pulled from, exists
-	if _, err := os.Stat(d.Srv.Config.USBPath); os.IsNotExist(err) {
-		d.logError(fmt.Sprintf("Folder '%s' does not exist.", d.Srv.Config.USBPath))
+	_, err = os.Stat(d.Srv.Config.USBPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			d.logError(fmt.Sprintf("Folder '%s' does not exist.", d.Srv.Config.USBPath))
+		} else {
+			d.logError("Error getting USB folder stats. ", err.Error())
+		}
+
 	} else {
 		d.logDebug("Moving images to the USB folder.")
+
+		d.StopUSB()
+
 		// Clear this folder
+		d.logDebug("Clearing old images from the USB folder.")
 		if fi, err := ioutil.ReadDir(d.Srv.Config.USBPath); err == nil {
 			for _, f := range fi {
 				n := f.Name()
@@ -129,8 +139,6 @@ func (d *Display) Run() {
 				}
 			}
 		}
-
-		d.StopUSB()
 
 		// Move the image files to the folder for display on the Photo Frame
 		for _, i := range dl {
@@ -175,12 +183,14 @@ func (d *Display) StopUSB() {
 	if err != nil {
 		d.logError("Error removing USB entry. " + err.Error())
 	}
+
+	d.logInfo("USB display stopped")
 }
 
 // StartUSB will add the USB mount, so that the display will trigger a reload of the images
 func (d *Display) StartUSB() {
 	go func() {
-		d.logInfo("Refreshing USB display")
+		d.logInfo("Starting USB display")
 		myInfo, err := gopifinder.NewDeviceInfo()
 		if err != nil {
 			d.logError("Error getting device information. " + err.Error())
@@ -196,7 +206,7 @@ func (d *Display) StartUSB() {
 		if err != nil {
 			d.logError("Error adding USB entry. " + err.Error())
 		}
-		d.logInfo("Refresh USB display complete.")
+		d.logInfo("USB display started")
 	}()
 }
 
