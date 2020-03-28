@@ -120,7 +120,7 @@ func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 			if url == "" {
 				load = false
 			} else {
-				p.LogInfo("Downloading", i.Image.Title, fn)
+				p.LogInfo("Downloading ", i.Image.Title, fn)
 				err = p.downloadImage(fp, fn, url, xRes, yRes)
 				if err != nil {
 					load = false
@@ -138,7 +138,7 @@ func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 			// There was an issue processing the image,
 			// remove the file from the disk if anything was written
 			if _, err := os.Stat(fp); err == nil {
-				p.LogInfo("Removing file", fp)
+				p.LogInfo("Removing file ", fp)
 				os.Remove(fp)
 			}
 		}
@@ -160,10 +160,10 @@ func (p *NatGeo) downloadImages(ngd *natgeoData) ([]DisplayImage, error) {
 				}
 			}
 			if remove {
-				p.LogInfo("Removing", f.Name())
+				p.LogInfo("Removing ", f.Name())
 				err = os.Remove(filepath.Join(path, f.Name()))
 				if err != nil {
-					p.LogInfo("Error removing image file", f.Name(), ". ", err.Error())
+					p.LogInfo("Error removing image file ", f.Name(), ". ", err.Error())
 				}
 			}
 		}

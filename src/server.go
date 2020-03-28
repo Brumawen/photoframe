@@ -38,17 +38,17 @@ func (s *Server) Start(v service.Service) error {
 	// Make sure the working directory is the same as the application exe
 	ap, err := os.Executable()
 	if err != nil {
-		s.logError("Error getting the executable path.", err.Error())
+		s.logError("Error getting the executable path. ", err.Error())
 	} else {
 		wd, err := os.Getwd()
 		if err != nil {
-			s.logError("Error getting current working directory.", err.Error())
+			s.logError("Error getting current working directory. ", err.Error())
 		} else {
 			ad := filepath.Dir(ap)
-			s.logInfo("Current application path is", ad)
+			s.logInfo("Current application path is ", ad)
 			if ad != wd {
 				if err := os.Chdir(ad); err != nil {
-					s.logError("Error chaning working directory.", err.Error())
+					s.logError("Error chaning working directory. ", err.Error())
 				}
 			}
 		}
@@ -122,7 +122,7 @@ func (s *Server) run() {
 
 	// Start the web server
 	go func() {
-		s.logInfo("Server listening on port", s.PortNo)
+		s.logInfo("Server listening on port ", s.PortNo)
 		if err := s.http.ListenAndServe(); err != nil {
 			msg := err.Error()
 			if !strings.Contains(msg, "http: Server closed") {

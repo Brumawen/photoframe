@@ -108,7 +108,7 @@ func (p *Pexels) downloadImages(pd *pexelsData) ([]DisplayImage, error) {
 			// There was an issue processing the image,
 			// remove the file from the disk if anything was written
 			if _, err := os.Stat(fp); err == nil {
-				p.LogInfo("Removing file", fp)
+				p.LogInfo("Removing file ", fp)
 				os.Remove(fp)
 			}
 		}
@@ -127,10 +127,10 @@ func (p *Pexels) downloadImages(pd *pexelsData) ([]DisplayImage, error) {
 				}
 			}
 			if remove {
-				p.LogInfo("Removing", f.Name())
+				p.LogInfo("Removing ", f.Name())
 				err = os.Remove(filepath.Join(path, f.Name()))
 				if err != nil {
-					p.LogInfo("Error", err.Error())
+					p.LogInfo("Error ", err.Error())
 				}
 			}
 		}
@@ -148,7 +148,7 @@ func (p *Pexels) downloadImages(pd *pexelsData) ([]DisplayImage, error) {
 
 func (p *Pexels) downloadImage(fp string, fn string, id int, xRes int, yRes int) error {
 	// File does not exist, so download it
-	p.LogInfo("Downloading", fn)
+	p.LogInfo("Downloading ", fn)
 	url := fmt.Sprintf("https://images.pexels.com/photos/%d/pexels-photo-%d.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=%d&w=%d", id, id, yRes, xRes)
 	res, err := http.Get(url)
 	if res != nil {

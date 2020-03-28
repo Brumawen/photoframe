@@ -96,7 +96,7 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 		_, err := os.Stat(fp)
 		if os.IsNotExist(err) {
 			// File does not exist, so download it
-			b.LogInfo("Downloading", fp)
+			b.LogInfo("Downloading ", fp)
 			url := "https://bing.com" + i.Urlbase + res + ".jpg"
 			err = b.downloadImage(fp, fn, url, xRes, yRes)
 			if err != nil {
@@ -119,7 +119,7 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 			// There was an issue processing the image,
 			// remove the file from the disk if anything was written
 			if _, err := os.Stat(fp); err == nil {
-				b.LogInfo("Removing file", fp)
+				b.LogInfo("Removing file ", fp)
 				os.Remove(fp)
 			}
 		}
@@ -141,7 +141,7 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 				b.LogInfo("Removing file '", f.Name(), "'")
 				err = os.Remove(filepath.Join(path, f.Name()))
 				if err != nil {
-					b.LogInfo("Error", err.Error())
+					b.LogInfo("Error ", err.Error())
 				}
 			}
 		}
@@ -164,18 +164,18 @@ func (b *IodBing) downloadImage(fp string, fn string, url string, xRes int, yRes
 		res.Close = true
 	}
 	if err != nil {
-		b.LogError("Error getting image file from url", url, ". ", err.Error())
+		b.LogError("Error getting image file from url [", url, "]. ", err.Error())
 		return err
 	}
 	fd, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		b.LogError("Error reading image file from response body.", url, ". ", err.Error())
+		b.LogError("Error reading image file from response body. [", url, "]. ", err.Error())
 		return err
 	}
 	b.LogInfo("Downloading file to ", fp)
 	err = ioutil.WriteFile(fp, fd, 0666)
 	if err != nil {
-		b.LogError("Error writing image file", fp, ". ", err.Error())
+		b.LogError("Error writing image file ", fp, ". ", err.Error())
 		return err
 	}
 	// Resize the image
@@ -186,7 +186,7 @@ func (b *IodBing) downloadImage(fp string, fn string, url string, xRes int, yRes
 		img = imaging.Fill(img, xRes, yRes, imaging.Center, imaging.Lanczos)
 		err = imaging.Save(img, fp)
 		if err != nil {
-			b.LogError("Error saving resized image file", fp, ".", err.Error())
+			b.LogError("Error saving resized image file ", fp, ".", err.Error())
 		}
 	}
 	return err

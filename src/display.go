@@ -63,7 +63,7 @@ func (d *Display) Run() {
 	}
 	l, err = p.GetImages()
 	if err != nil {
-		d.logError("Error getting images from", n, ". ", err.Error())
+		d.logError("Error getting images from ", n, ". ", err.Error())
 		d.LastErr = err
 		return
 	}
@@ -75,7 +75,7 @@ func (d *Display) Run() {
 		d.logInfo("Getting weather forecast.")
 		w, err = GetForecast()
 		if err != nil {
-			d.logError("Error getting weather forecast.", err.Error())
+			d.logError("Error getting weather forecast. ", err.Error())
 			d.LastErr = err
 			return
 		}
@@ -84,7 +84,7 @@ func (d *Display) Run() {
 		d.logInfo("Getting moon information.")
 		m, err = GetMoon()
 		if err != nil {
-			d.logError("Error getting moon phase details.", err.Error())
+			d.logError("Error getting moon phase details. ", err.Error())
 			d.LastErr = err
 			return
 		}
@@ -96,7 +96,7 @@ func (d *Display) Run() {
 		d.logInfo("Getting calendar event information.")
 		c, err = GetCalendarEvents()
 		if err != nil {
-			d.logInfo("Error getting calendar event information.", err.Error())
+			d.logInfo("Error getting calendar event information. ", err.Error())
 			d.LastErr = err
 			return
 		}
@@ -106,7 +106,7 @@ func (d *Display) Run() {
 	d.logInfo("Building display images.")
 	dl, err := d.buildDisplayImages(l, w, m, c)
 	if err != nil {
-		d.logError("Error building display images.", err.Error())
+		d.logError("Error building display images. ", err.Error())
 		d.LastErr = err
 		return
 	}
@@ -115,7 +115,7 @@ func (d *Display) Run() {
 	_, err = os.Stat(d.Srv.Config.USBPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			d.logError(fmt.Sprintf("Folder '%s' does not exist.", d.Srv.Config.USBPath))
+			d.logError(fmt.Sprintf("Folder '%s' does not exist. ", d.Srv.Config.USBPath))
 		} else {
 			d.logError("Error getting USB folder stats. ", err.Error())
 		}
@@ -151,7 +151,7 @@ func (d *Display) Run() {
 			} else {
 				err = imaging.Save(img, p)
 				if err != nil {
-					d.logError("Failed to save image to USB display folder." + err.Error())
+					d.logError("Failed to save image to USB display folder. " + err.Error())
 				}
 			}
 		}
@@ -265,6 +265,7 @@ func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon, c Cal
 	if d.Srv.Config.Weather || d.Srv.Config.Calendar {
 		n := 0
 		for _, i := range dl {
+			d.logInfo("Building image ", i.ImagePath)
 			if d.Srv.Config.Weather {
 				if img, err := d.buildWeatherImage(n, i, w, m); err == nil {
 					rl = append(rl, img)
