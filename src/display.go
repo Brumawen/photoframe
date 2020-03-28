@@ -649,29 +649,29 @@ func (d *Display) getColour(c string) color.Color {
 
 func (d *Display) logDebug(v ...interface{}) {
 	if d.Srv.VerboseLogging {
-		a := fmt.Sprint(v)
+		a := fmt.Sprint(v...)
 		if logger != nil {
-			logger.Info("Display: [Dbg] ", a[1:len(a)-1])
+			logger.Info("Display: [Dbg] ", a)
 		} else {
-			fmt.Println("Display: [Dbg] ", a[1:len(a)-1])
+			fmt.Println("Display: [Dbg] ", a)
 		}
 	}
 }
 
 func (d *Display) logInfo(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("Display: [Inf] ", a[1:len(a)-1])
+		logger.Info("Display: [Inf] ", a)
 	} else {
-		fmt.Println("Display: [Inf] ", a[1:len(a)-1])
+		fmt.Println("Display: [Inf] ", a)
 	}
 }
 
 func (d *Display) logError(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Error("Display: [Err] ", a[1:len(a)-1])
+		logger.Error("Display: [Err] ", a)
 	} else {
-		fmt.Println("Display: [Err] ", a[1:len(a)-1])
+		fmt.Println("Display: [Err] ", a)
 	}
 }

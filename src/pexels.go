@@ -173,20 +173,20 @@ func (p *Pexels) downloadImage(fp string, fn string, id int, xRes int, yRes int)
 
 // LogInfo is used to log information messages for this controller.
 func (p *Pexels) LogInfo(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("Pexels: [Inf] ", a[1:len(a)-1])
+		logger.Info("Pexels: [Inf] ", a)
 	} else {
-		fmt.Println("Pexels: [Inf] ", a[1:len(a)-1])
+		fmt.Println("Pexels: [Inf] ", a)
 	}
 }
 
 // LogError is used to log error messages for this controller.
 func (p *Pexels) LogError(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("Pexels: [Err] ", a[1:len(a)-1])
+		logger.Info("Pexels: [Err] ", a)
 	} else {
-		fmt.Println("Pexels: [Err] ", a[1:len(a)-1])
+		fmt.Println("Pexels: [Err] ", a)
 	}
 }

@@ -249,20 +249,20 @@ func (p *NatGeo) getImageID(url string) string {
 
 // LogInfo is used to log information messages for this controller.
 func (p *NatGeo) LogInfo(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("NatGeo: [Inf] ", a[1:len(a)-1])
+		logger.Info("NatGeo: [Inf] ", a)
 	} else {
-		fmt.Println("NatGeo: [Inf] ", a[1:len(a)-1])
+		fmt.Println("NatGeo: [Inf] ", a)
 	}
 }
 
 // LogError is used to log error messages for this controller.
 func (p *NatGeo) LogError(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("NatGeo: [Err] ", a[1:len(a)-1])
+		logger.Info("NatGeo: [Err] ", a)
 	} else {
-		fmt.Println("NatGeo: [Err] ", a[1:len(a)-1])
+		fmt.Println("NatGeo: [Err] ", a)
 	}
 }

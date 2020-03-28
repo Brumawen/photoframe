@@ -17,6 +17,7 @@ func TestCanGetBingImages(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	t.Log("Number of images = ", len(l))
 	if len(l) != 8 {
 		t.Error("Only", len(l), "images returned, expected 8.")
 	}

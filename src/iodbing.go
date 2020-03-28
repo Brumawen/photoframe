@@ -88,15 +88,26 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 
 	for _, i := range bd.Images {
 		// Check to see if the file already exists
-		fn := filepath.Base(i.Urlbase) + ".jpg"
+		fr := []rune(i.Urlbase)[7:]
+		fs := string(fr)
+		fn := filepath.Base(fs) + ".jpg"
 		fp := filepath.Join(path, fn)
 		load := true
-		if _, err := os.Stat(fp); os.IsNotExist(err) {
+		b.LogInfo("Checking if file '", fp, "' exits")
+		_, err := os.Stat(fp)
+		if os.IsNotExist(err) {
 			// File does not exist, so download it
 			b.LogInfo("Downloading", fp)
 			url := "https://bing.com" + i.Urlbase + res + ".jpg"
 			err = b.downloadImage(fp, fn, url, xRes, yRes)
+			if err != nil {
+				b.LogError("Failed with ", err.Error())
+				load = false
+			}
 
+		} else if err != nil {
+			b.LogError("Failed with ", err.Error())
+			load = false
 		}
 		if load {
 			// Add the image to the list to return
@@ -128,7 +139,7 @@ func (b *IodBing) downloadImages(bd *bingdata) ([]DisplayImage, error) {
 				}
 			}
 			if remove {
-				b.LogInfo("Removing", f.Name())
+				b.LogInfo("Removing file '", f.Name(), "'")
 				err = os.Remove(filepath.Join(path, f.Name()))
 				if err != nil {
 					b.LogInfo("Error", err.Error())
@@ -162,6 +173,7 @@ func (b *IodBing) downloadImage(fp string, fn string, url string, xRes int, yRes
 		b.LogError("Error reading image file from response body.", url, ". ", err.Error())
 		return err
 	}
+	b.LogInfo("Downloading file to ", fp)
 	err = ioutil.WriteFile(fp, fd, 0666)
 	if err != nil {
 		b.LogError("Error writing image file", fp, ". ", err.Error())
@@ -183,20 +195,20 @@ func (b *IodBing) downloadImage(fp string, fn string, url string, xRes int, yRes
 
 // LogInfo is used to log information messages for this controller.
 func (b *IodBing) LogInfo(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("IodBing: [Inf] ", a[1:len(a)-1])
+		logger.Info("IodBing: [Inf] ", a)
 	} else {
-		fmt.Println("IodBing: [Inf] ", a[1:len(a)-1])
+		fmt.Println("IodBing: [Inf] ", a)
 	}
 }
 
 // LogError is used to log error messages for this controller.
 func (b *IodBing) LogError(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("IodBing: [Err] ", a[1:len(a)-1])
+		logger.Info("IodBing: [Err] ", a)
 	} else {
-		fmt.Println("IodBing: [Err] ", a[1:len(a)-1])
+		fmt.Println("IodBing: [Err] ", a)
 	}
 }

@@ -33,6 +33,6 @@ func (c *DisplayController) handleRebuildDisplay(w http.ResponseWriter, r *http.
 
 // LogInfo is used to log information messages for this controller.
 func (c *DisplayController) LogInfo(v ...interface{}) {
-	a := fmt.Sprint(v)
-	logger.Info("DisplayController: [Inf] ", a[1:len(a)-1])
+	a := fmt.Sprint(v...)
+	logger.Info("DisplayController: [Inf] ", a)
 }

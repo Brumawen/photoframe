@@ -67,20 +67,20 @@ func (p *LoremPicsum) GetImages() ([]DisplayImage, error) {
 
 // LogInfo is used to log information messages for this controller.
 func (p *LoremPicsum) LogInfo(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("LoremPicsum: [Inf] ", a[1:len(a)-1])
+		logger.Info("LoremPicsum: [Inf] ", a)
 	} else {
-		fmt.Println("LoremPicsum: [Inf] ", a[1:len(a)-1])
+		fmt.Println("LoremPicsum: [Inf] ", a)
 	}
 }
 
 // LogError is used to log error messages for this controller.
 func (p *LoremPicsum) LogError(v ...interface{}) {
-	a := fmt.Sprint(v)
+	a := fmt.Sprint(v...)
 	if logger != nil {
-		logger.Info("LoremPicsum: [Err] ", a[1:len(a)-1])
+		logger.Info("LoremPicsum: [Err] ", a)
 	} else {
-		fmt.Println("LoremPicsum: [Err] ", a[1:len(a)-1])
+		fmt.Println("LoremPicsum: [Err] ", a)
 	}
 }
