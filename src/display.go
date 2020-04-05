@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -122,12 +121,10 @@ func (d *Display) Run() {
 		}
 
 	} else {
-		d.logDebug("Moving images to the USB folder.")
-
-		d.StopUSB()
+		d.logInfo("Moving images to the USB folder.")
 
 		// Clear this folder
-		d.logDebug("Clearing old images from the USB folder.")
+		d.logInfo("Clearing old images from the USB folder.")
 		if fi, err := ioutil.ReadDir(d.Srv.Config.USBPath); err == nil {
 			for _, f := range fi {
 				n := f.Name()
@@ -142,9 +139,12 @@ func (d *Display) Run() {
 		}
 
 		// Move the image files to the folder for display on the Photo Frame
-		for _, i := range dl {
-			n := filepath.Base(i.ImagePath)
-			n = strings.TrimSuffix(n, path.Ext(n)) + ".jpg"
+		d.logInfo("Translating new images into the USB folder.")
+		for x, i := range dl {
+			//n := filepath.Base(i.ImagePath)
+			//n = strings.TrimSuffix(n, path.Ext(n)) + ".jpg"
+			n = fmt.Sprintf("image_%d_%d_%d.jpg", time.Now().Hour(), time.Now().Minute(), x)
+			d.logInfo("Translating '", n, "' from '", i.ImagePath, "'")
 			p := filepath.Join(d.Srv.Config.USBPath, n)
 			d.logDebug("Translating image " + p)
 			if img, err := imaging.Open(i.ImagePath); err != nil {
@@ -157,6 +157,8 @@ func (d *Display) Run() {
 			}
 		}
 
+		d.StopUSB()
+		time.Sleep(2 * time.Second)
 		d.StartUSB()
 	}
 
