@@ -25,7 +25,7 @@ func (c *DisplayController) AddController(router *mux.Router, s *Server) {
 func (c *DisplayController) handleRefreshDisplay(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		c.Srv.Display.StopUSB()
-		time.Sleep(2 * time.Second)
+		time.Sleep(5 * time.Second)
 		c.Srv.Display.StartUSB()
 	}()
 	w.Write([]byte("Refresh started."))
