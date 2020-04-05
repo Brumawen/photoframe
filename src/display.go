@@ -6,7 +6,6 @@ import (
 	"image/color"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -67,6 +66,7 @@ func (d *Display) Run() {
 		d.LastErr = err
 		return
 	}
+	d.logInfo("Retrieved ", len(l), " image(s) to display from ", n, ".")
 
 	// Get the current weather forecast
 	w := Weather{}
@@ -115,7 +115,7 @@ func (d *Display) Run() {
 	_, err = os.Stat(d.Srv.Config.USBPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			d.logError(fmt.Sprintf("Folder '%s' does not exist. ", d.Srv.Config.USBPath))
+			d.logError(fmt.Sprintf("USB Folder '%s' does not exist. Cannot continue.", d.Srv.Config.USBPath))
 		} else {
 			d.logError("Error getting USB folder stats. ", err.Error())
 		}
@@ -177,14 +177,15 @@ func (d *Display) StopUSB() {
 		return
 	}
 
-	// Switch off the USB
-	d.logDebug("Removing USB entry.")
-	err = exec.Command("sudo", "modprobe", "-r", "g_mass_storage").Run()
+	// Switch off the USB folder
+	f := "/sys/devices/platform/soc/20980000.usb/gadget/lun0/file"
+	d.logDebug("Clearing USB entry from file '", f, "'.")
+	err = ioutil.WriteFile(f, []byte(""), 0666)
 	if err != nil {
-		d.logError("Error removing USB entry. " + err.Error())
+		d.logError("Error clearing USB entry. ", err.Error())
+	} else {
+		d.logInfo("USB display stopped")
 	}
-
-	d.logInfo("USB display stopped")
 }
 
 // StartUSB will add the USB mount, so that the display will trigger a reload of the images
@@ -200,13 +201,15 @@ func (d *Display) StartUSB() {
 			d.logInfo("Refresh of USB is not supported on " + myInfo.OS)
 			return
 		}
-		// Switch on the USB
-		d.logDebug("Adding USB entry.")
-		err = exec.Command("sudo", "modprobe", "g_mass_storage", "file=/piusb.bin", "stall=0", "ro=1").Run()
+		// Switch on the USB folder
+		f := "/sys/devices/platform/soc/20980000.usb/gadget/lun0/file"
+		d.logDebug("Adding USB entry to file '", f, "'.")
+		err = ioutil.WriteFile(f, []byte("/piusb.bin"), 0666)
 		if err != nil {
-			d.logError("Error adding USB entry. " + err.Error())
+			d.logError("Error adding USB entry. ", err.Error())
+		} else {
+			d.logInfo("USB display started")
 		}
-		d.logInfo("USB display started")
 	}()
 }
 
@@ -230,6 +233,11 @@ func (d *Display) getImageProvider() (ImageProvider, string, error) {
 	case 3:
 		n := "National Geographic Photo of the Day"
 		p := new(NatGeo)
+		p.SetConfig(*d.Srv.Config)
+		return p, n, nil
+	case 4:
+		n := "File Folder"
+		p := new(FileFolder)
 		p.SetConfig(*d.Srv.Config)
 		return p, n, nil
 	default:
@@ -280,6 +288,7 @@ func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon, c Cal
 			}
 		}
 	} else {
+		d.logInfo("Both weather and calendar are turned off.  Using plain images.")
 		rl = dl
 	}
 
