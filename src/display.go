@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -180,7 +181,7 @@ func (d *Display) StopUSB() {
 	// Switch off the USB folder
 	f := "/sys/devices/platform/soc/20980000.usb/gadget/lun0/file"
 	d.logDebug("Clearing USB entry from file '", f, "'.")
-	err = ioutil.WriteFile(f, []byte(""), 0666)
+	err = exec.Command("sudo", "echo", "\"\"", ">", f).Run()
 	if err != nil {
 		d.logError("Error clearing USB entry. ", err.Error())
 	} else {
@@ -204,7 +205,7 @@ func (d *Display) StartUSB() {
 		// Switch on the USB folder
 		f := "/sys/devices/platform/soc/20980000.usb/gadget/lun0/file"
 		d.logDebug("Adding USB entry to file '", f, "'.")
-		err = ioutil.WriteFile(f, []byte("/piusb.bin"), 0666)
+		err = exec.Command("sudo", "echo", "\"/piusb.bin\"", ">", f).Run()
 		if err != nil {
 			d.logError("Error adding USB entry. ", err.Error())
 		} else {
