@@ -160,11 +160,6 @@ func (d *Display) Run() {
 		d.StopUSB()
 		time.Sleep(4 * time.Second)
 		d.StartUSB()
-		time.Sleep(4 * time.Second)
-		d.StopUSB()
-		time.Sleep(4 * time.Second)
-		d.StartUSB()
-
 	}
 
 	d.IsRunning = false
