@@ -179,11 +179,10 @@ func (d *Display) StopUSB() {
 	}
 
 	// Switch off the USB folder
-	f := "/sys/devices/platform/soc/20980000.usb/gadget/lun0/file"
-	d.logDebug("Clearing USB entry from file '", f, "'.")
-	err = exec.Command("sudo", "echo", "\"\"", ">", f).Run()
+	d.logDebug("Executing stopusb command.")
+	err = exec.Command("stopusb").Run()
 	if err != nil {
-		d.logError("Error clearing USB entry. ", err.Error())
+		d.logError("Error stopping USB. ", err.Error())
 	} else {
 		d.logInfo("USB display stopped")
 	}
@@ -203,11 +202,10 @@ func (d *Display) StartUSB() {
 			return
 		}
 		// Switch on the USB folder
-		f := "/sys/devices/platform/soc/20980000.usb/gadget/lun0/file"
-		d.logDebug("Adding USB entry to file '", f, "'.")
-		err = exec.Command("sudo", "echo", "\"/piusb.bin\"", ">", f).Run()
+		d.logDebug("Executing startusb command.")
+		err = exec.Command("startusb").Run()
 		if err != nil {
-			d.logError("Error adding USB entry. ", err.Error())
+			d.logError("Error starting usb. ", err.Error())
 		} else {
 			d.logInfo("USB display started")
 		}
