@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -22,8 +23,11 @@ func (c *DisplayController) AddController(router *mux.Router, s *Server) {
 }
 
 func (c *DisplayController) handleRefreshDisplay(w http.ResponseWriter, r *http.Request) {
-	c.Srv.Display.StopUSB()
-	c.Srv.Display.StartUSB()
+	go func() {
+		c.Srv.Display.StopUSB()
+		time.Sleep(2 * time.Second)
+		c.Srv.Display.StartUSB()
+	}()
 	w.Write([]byte("Refresh started."))
 }
 

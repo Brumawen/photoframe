@@ -89,6 +89,7 @@
         <fieldset class="uk-fieldset uk-margin-top">
             <input class="uk-button uk-button-primary" type="submit" value="Save Changes">
             <button class="uk-button uk-button-default" type="button" onclick="onRebuildClick()">Rebuild Display</button>
+            <button class="uk-button uk-button-default" type="button" onclick="onRefreshClick()">Refresh Display</button>
         </fieldset>
 
     </form>
@@ -119,6 +120,22 @@
                 url: "display/rebuild",
                 success: function (data) {
                     UIkit.notification({message: "Display rebuild successful.", status: 'success'});
+                },
+                error: function (data) {
+                    console.log(data)
+                    UIkit.notification({message: data.responseText, status: 'danger'})
+
+                }
+            });
+        }
+
+        function onRefreshClick() {
+            UIkit.notification({message: "Refreshing display...", status: 'sucess'});
+            $.ajax({
+                type: "GET",
+                url: "display/refresh",
+                success: function (data) {
+                    UIkit.notification({message: "Display refresh successful.", status: 'success'});
                 },
                 error: function (data) {
                     console.log(data)
