@@ -180,7 +180,7 @@ func (d *Display) StopUSB() {
 
 	// Switch off the USB folder
 	d.logDebug("Executing stopusb command.")
-	err = exec.Command("stopusb").Run()
+	err = exec.Command("./stopusb").Run()
 	if err != nil {
 		d.logError("Error stopping USB. ", err.Error())
 	} else {
@@ -203,7 +203,7 @@ func (d *Display) StartUSB() {
 		}
 		// Switch on the USB folder
 		d.logDebug("Executing startusb command.")
-		err = exec.Command("startusb").Run()
+		err = exec.Command("./startusb").Run()
 		if err != nil {
 			d.logError("Error starting usb. ", err.Error())
 		} else {
