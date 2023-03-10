@@ -17,3 +17,8 @@ This micro-service will periodically download images from the selected provider 
 1. Execute ``` sudo mkdosfs -F 32 /home/pi/usb.img ``` to format the drive as Fat32
 1. Execute ``` sudo modprobe g_multi file=/home/pi/usb.img stall=0 removeable=1 ``` to set the zero as a USB drive.
 1. Execute ``` sudo modprobe -r g_multi ``` to reset.
+
+## To mount the drive as a local media directory
+1. Execute ``` sudo nano /etc/fstab ```
+1. Add the text ``` /home/pi/usb.img      /media/usb      vfat    users,umask=000   0       2 ``` to the bottom of the file and save.
+1. Execute ``` sudo mount -a ```
