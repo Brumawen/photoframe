@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -17,9 +18,9 @@ type Moon struct {
 }
 
 // GetMoon returns the details about the current phase of the moon
-func GetMoon() (Moon, error) {
+func GetMoon(c Config) (Moon, error) {
 	m := Moon{}
-	resp, err := http.Get("http://localhost:20511/moon/get")
+	resp, err := http.Get(fmt.Sprintf("%s/moon/get", c.WeatherUrl))
 	if resp != nil {
 		defer resp.Body.Close()
 		resp.Close = true

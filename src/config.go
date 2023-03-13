@@ -10,12 +10,15 @@ import (
 
 // Config holds the configuration required for the Soil Monitor module.
 type Config struct {
-	Resolution int    `json:"resolution"` // Resolution of the display, 0=800x480
-	Provider   int    `json:"provider"`   // Image of the Day provider
-	ImgCount   int    `json:"imgcount"`   // NUmber of images to retrieve
-	Weather    bool   `json:"weather"`    // Display weather data
-	Calendar   bool   `json:"calendar"`   // Display calendar data
-	USBPath    string `json:"usbPath"`    // Path to the USB shared folder
+	Resolution  int    `json:"resolution"`  // Resolution of the display, 0=800x480
+	Provider    int    `json:"provider"`    // Image of the Day provider
+	ImgCount    int    `json:"imgcount"`    // NUmber of images to retrieve
+	Weather     bool   `json:"weather"`     // Display weather data
+	WeatherUrl  string `json:"weatherurl"`  // Url for the weather service
+	Calendar    bool   `json:"calendar"`    // Display calendar data
+	Loadshed    bool   `json:"loadshed"`    // Display Load shedding data
+	LoadshedUrl string `json:"loadshedurl"` // Url for the load shedding service
+	USBPath     string `json:"usbPath"`     // Path to the USB shared folder
 }
 
 // GetResolution returns the required image resolution (x,y)
@@ -106,5 +109,13 @@ func (c *Config) SetDefaults() {
 	}
 	if mustSave {
 		c.WriteToFile("config.json")
+	}
+	if c.WeatherUrl == "" {
+		c.WeatherUrl = "http://localhost:20511"
+		mustSave = true
+	}
+	if c.LoadshedUrl == "" {
+		c.LoadshedUrl = "http://localhost:20515"
+		mustSave = true
 	}
 }

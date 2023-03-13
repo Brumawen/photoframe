@@ -82,7 +82,7 @@ func (d *Display) Run() {
 
 		// Get the current moon phase
 		d.logInfo("Getting moon information.")
-		m, err = GetMoon()
+		m, err = GetMoon(*d.Srv.Config)
 		if err != nil {
 			d.logError("Error getting moon phase details. ", err.Error())
 			d.LastErr = err
@@ -102,9 +102,21 @@ func (d *Display) Run() {
 		}
 	}
 
+	// Get the Loadshedding forecast
+	f := Loadshed{}
+	if d.Srv.Config.Loadshed {
+		d.logInfo("Getting load shedding forecast information.")
+		f, err = GetLoadshedInfo(*d.Srv.Config)
+		if err != nil {
+			d.logInfo("Error getting load shedding forecast information. ", err.Error())
+			d.LastErr = err
+			return
+		}
+	}
+
 	// Process the images
 	d.logInfo("Building display images.")
-	dl, err := d.buildDisplayImages(l, w, m, c)
+	dl, err := d.buildDisplayImages(l, w, m, c, f)
 	if err != nil {
 		d.logError("Error building display images. ", err.Error())
 		d.LastErr = err
@@ -247,7 +259,7 @@ func (d *Display) getImageProvider() (ImageProvider, string, error) {
 	}
 }
 
-func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon, c CalEvents) ([]DisplayImage, error) {
+func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon, c CalEvents, f Loadshed) ([]DisplayImage, error) {
 	rl := []DisplayImage{}
 
 	// Clear the folder first
@@ -276,7 +288,7 @@ func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon, c Cal
 		for _, i := range dl {
 			d.logInfo("Building image ", i.ImagePath)
 			if d.Srv.Config.Weather {
-				if img, err := d.buildWeatherImage(n, i, w, m); err == nil {
+				if img, err := d.buildWeatherImage(n, i, w, m, f); err == nil {
 					rl = append(rl, img)
 					n = n + 1
 				}
@@ -296,7 +308,7 @@ func (d *Display) buildDisplayImages(dl []DisplayImage, w Weather, m Moon, c Cal
 	return rl, nil
 }
 
-func (d *Display) buildWeatherImage(n int, i DisplayImage, w Weather, m Moon) (DisplayImage, error) {
+func (d *Display) buildWeatherImage(n int, i DisplayImage, w Weather, m Moon, f Loadshed) (DisplayImage, error) {
 	// Load the image
 	di := DisplayImage{Name: i.Name}
 	img, err := gg.LoadImage(i.ImagePath)
@@ -311,6 +323,7 @@ func (d *Display) buildWeatherImage(n int, i DisplayImage, w Weather, m Moon) (D
 	// Draw the sections
 	d.drawCurrentTemp(dc, w, 0, 0)
 	d.drawHumidPressure(dc, w, 0, 1)
+	d.drawLoadshed(dc, f, 0, 2)
 	d.drawSunRiseSet(dc, w, 1, 1)
 	d.drawWind(dc, w, 2, 1)
 	d.drawMoon(dc, m, 2, 0)
@@ -445,6 +458,52 @@ func (d *Display) drawHumidPressure(dc *gg.Context, w Weather, xq int, yq int) {
 	p := fmt.Sprintf("%.1f", w.Current.Pressure)
 	d.drawString(dc, p, 20, xb+60, yb+12)
 
+}
+
+func (d *Display) drawLoadshed(dc *gg.Context, f Loadshed, xq int, yq int) {
+	xb := xq*d.xBlock + 18
+	yb := yq * d.yBlock
+
+	// Draw the loadshed icon
+	if img, err := gg.LoadImage(fmt.Sprintf("./html/assets/images/loadshed%d.png", f.Stage)); err == nil {
+		dc.DrawImage(img, xb, yb)
+	}
+
+	if f.Events == nil || len(f.Events) == 0 {
+		return
+	}
+
+	xb = (xq + 1) * d.xBlock
+	yb = yq * d.yBlock
+	db := 1
+	day := ""
+
+	for i, e := range f.Events {
+		if i == 0 {
+			day = e.Day[:3]
+			d.drawString(dc, day, 20, xb-50, yb)
+			t := fmt.Sprintf("%s (%d)", e.Display, e.Stage)
+			d.drawString(dc, t, 20, xb, yb)
+			yb = yb + 30
+		} else {
+			if e.Day[:3] != day {
+				day = e.Day[:3]
+				if db == 1 {
+					db = 2
+					xb = (xq + 2) * d.xBlock
+					yb = yq * d.yBlock
+				}
+				d.drawString(dc, day, 16, xb, yb)
+			}
+			t := fmt.Sprintf("%s (%d)", e.Display, e.Stage)
+			if db == 1 {
+				d.drawString(dc, t, 20, xb, yb)
+			} else {
+				d.drawString(dc, t, 16, xb+50, yb)
+			}
+			yb = yb + 30
+		}
+	}
 }
 
 func (d *Display) drawSunRiseSet(dc *gg.Context, w Weather, xq int, yq int) {
