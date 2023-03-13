@@ -143,7 +143,7 @@ func (d *Display) Run() {
 		for x, i := range dl {
 			//n := filepath.Base(i.ImagePath)
 			//n = strings.TrimSuffix(n, path.Ext(n)) + ".jpg"
-			n = fmt.Sprintf("image_%d_%d_%d.jpg", time.Now().Hour(), time.Now().Minute(), x)
+			n = fmt.Sprintf("%4d%02d%02d_%02d%02d_%02d.jpg", time.Now().Year(), time.Now().Month(), time.Now().Day(), time.Now().Hour(), time.Now().Minute(), x)
 			d.logInfo("Translating '", n, "' from '", i.ImagePath, "'")
 			p := filepath.Join(d.Srv.Config.USBPath, n)
 			d.logDebug("Translating image " + p)
