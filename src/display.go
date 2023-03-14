@@ -466,7 +466,7 @@ func (d *Display) drawLoadshed(dc *gg.Context, f Loadshed, xq int, yq int) {
 
 	// Draw the loadshed icon
 	if img, err := gg.LoadImage(fmt.Sprintf("./html/assets/images/loadshed%d.png", f.Stage)); err == nil {
-		dc.DrawImage(img, xb, yb)
+		dc.DrawImage(img, xb+6, yb)
 	}
 
 	if f.Events == nil || len(f.Events) == 0 {

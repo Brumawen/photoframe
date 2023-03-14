@@ -20,7 +20,7 @@ type Server struct {
 	VerboseLogging bool                 // Verbose logging on/off
 	Timeout        int                  // Timeout waiting for a response from an IP probe.  Defaults to 2 seconds.
 	Config         *Config              // Configuration settings
-	NoReg          bool                 // Do not register with the finder server
+	Reg            bool                 // Register with the finder server
 	Finder         gopifinder.Finder    // Finder client - used to find other devices
 	Display        Display              // Display module
 	exit           chan struct{}        // Exit flag
@@ -101,7 +101,7 @@ func (s *Server) run() {
 		Handler: s.router,
 	}
 
-	if s.NoReg {
+	if !s.Reg {
 		s.logInfo("Not registering service with Finder server.")
 	} else {
 		s.logInfo("Registering service with Finder server.")
