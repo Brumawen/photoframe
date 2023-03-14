@@ -169,6 +169,7 @@ func (d *Display) Run() {
 			}
 		}
 
+		d.logInfo("Refreshing USB. Refresh wait = ", d.Srv.Config.RefreshWait)
 		d.StopUSB()
 		time.Sleep(time.Duration(d.Srv.Config.RefreshWait) * time.Second)
 		d.StartUSB()
