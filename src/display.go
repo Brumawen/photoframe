@@ -73,7 +73,7 @@ func (d *Display) Run() {
 	m := Moon{}
 	if d.Srv.Config.Weather {
 		d.logInfo("Getting weather forecast.")
-		w, err = GetForecast()
+		w, err = GetForecast(*d.Srv.Config)
 		if err != nil {
 			d.logError("Error getting weather forecast. ", err.Error())
 			d.LastErr = err
@@ -162,7 +162,7 @@ func (d *Display) Run() {
 			if img, err := imaging.Open(i.ImagePath); err != nil {
 				d.logError("Failed to open image for translation. " + err.Error())
 			} else {
-				err = imaging.Save(img, p)
+				err = imaging.Save(img, p, imaging.JPEGQuality(d.Srv.Config.Compression))
 				if err != nil {
 					d.logError("Failed to save image to USB display folder. " + err.Error())
 				}
@@ -342,6 +342,7 @@ func (d *Display) buildWeatherImage(n int, i DisplayImage, w Weather, m Moon, f 
 
 	// Save the new image
 	di.ImagePath = filepath.Join("./img/display", fmt.Sprintf("image%d.png", n))
+
 	err = dc.SavePNG(di.ImagePath)
 	if err != nil {
 		d.logError("Error saving weather image. " + err.Error())

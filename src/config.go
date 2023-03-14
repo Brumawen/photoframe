@@ -20,6 +20,7 @@ type Config struct {
 	LoadshedUrl string `json:"loadshedurl"` // Url for the load shedding service
 	USBPath     string `json:"usbPath"`     // Path to the USB shared folder
 	RefreshWait int    `json:"refreshwait"` // Number of seconds to wait between stop and start usb
+	Compression int    `json:"compression"` // JPEG Compression to use
 }
 
 // GetResolution returns the required image resolution (x,y)
@@ -122,5 +123,8 @@ func (c *Config) SetDefaults() {
 	if c.RefreshWait < 1 {
 		c.RefreshWait = 10
 		mustSave = true
+	}
+	if c.Compression < 20 || c.Compression > 90 {
+		c.Compression = 80
 	}
 }

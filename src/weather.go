@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -37,9 +38,9 @@ type Weather struct {
 }
 
 // GetForecast returns the current weather forecast
-func GetForecast() (Weather, error) {
+func GetForecast(c Config) (Weather, error) {
 	f := Weather{}
-	resp, err := http.Get("http://localhost:20511/weather/forecast")
+	resp, err := http.Get(fmt.Sprintf("%s/weather/forecast", c.WeatherUrl))
 	if resp != nil {
 		defer resp.Body.Close()
 		resp.Close = true
