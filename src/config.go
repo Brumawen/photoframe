@@ -19,6 +19,7 @@ type Config struct {
 	Loadshed    bool   `json:"loadshed"`    // Display Load shedding data
 	LoadshedUrl string `json:"loadshedurl"` // Url for the load shedding service
 	USBPath     string `json:"usbPath"`     // Path to the USB shared folder
+	RefreshWait int    `json:"refreshwait"` // Number of seconds to wait between stop and start usb
 }
 
 // GetResolution returns the required image resolution (x,y)
@@ -116,6 +117,10 @@ func (c *Config) SetDefaults() {
 	}
 	if c.LoadshedUrl == "" {
 		c.LoadshedUrl = "http://localhost:20515"
+		mustSave = true
+	}
+	if c.RefreshWait < 1 {
+		c.RefreshWait = 10
 		mustSave = true
 	}
 }
