@@ -151,7 +151,7 @@ func (d *Display) Run() {
 		}
 
 		// Move the image files to the folder for display on the Photo Frame
-		d.logInfo("Translating new images into the USB folder.")
+		d.logInfo("Translating new images into the USB folder.  JPG compression = ", d.Srv.Config.Compression)
 		for x, i := range dl {
 			//n := filepath.Base(i.ImagePath)
 			//n = strings.TrimSuffix(n, path.Ext(n)) + ".jpg"
